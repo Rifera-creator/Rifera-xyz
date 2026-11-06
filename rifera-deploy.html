@@ -1,0 +1,828 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="color-scheme" content="light dark" />
+<link rel="icon" href="data:," />
+<title>Rifera Deploy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;900&family=IBM+Plex+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.13.2/dist/ethers.umd.min.js"></script>
+<style>
+  :root{
+    color-scheme: light;
+    --bg:#f4f1ea;
+    --panel:#fffdf7;
+    --panel-2:#efe9db;
+    --ink:#171410;
+    --ink-soft:#57503f;
+    --line:#d8d0bc;
+    --gold:#f2b705;
+    --gold-ink:#7a5c00;
+    --gold-deep:#c79400;
+    --ok:#1d7a3a;
+    --bad:#b3261e;
+    --btn-ink:#171410;
+    --field:#ffffff;
+    --log-bg:#171410;
+    --log-ink:#e8e2d2;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      color-scheme: dark;
+      --bg:#0a0908;
+      --panel:#14120d;
+      --panel-2:#1c1912;
+      --ink:#f2ecdd;
+      --ink-soft:#a89e83;
+      --line:#2e2a1e;
+      --gold:#f2b705;
+      --gold-ink:#f2b705;
+      --gold-deep:#f2b705;
+      --ok:#3ddc84;
+      --bad:#ff6b64;
+      --btn-ink:#0a0908;
+      --field:#0d0c09;
+      --log-bg:#000000;
+      --log-ink:#d9d2bd;
+    }
+  }
+  html{ -webkit-text-size-adjust:100%; }
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"Archivo", system-ui, sans-serif;
+    font-size:16px;
+    line-height:1.55;
+  }
+  .wrap{ max-width:880px; margin:0 auto; padding:28px 18px 64px; }
+  .mono{ font-family:"IBM Plex Mono", ui-monospace, monospace; }
+
+  /* ── Intro ─────────────────────────────── */
+  .intro{ border-bottom:3px solid var(--ink); padding-bottom:22px; margin-bottom:8px; }
+  .intro h1{
+    font-size:clamp(30px, 6vw, 46px);
+    font-weight:900; letter-spacing:-0.01em; line-height:1.04;
+    margin:0 0 12px; text-transform:uppercase;
+  }
+  .intro h1 .cursor-ic{ display:inline-block; vertical-align:-4px; margin-right:10px; }
+  .intro p{ margin:0 0 10px; max-width:64ch; color:var(--ink-soft); }
+  .intro p strong{ color:var(--ink); }
+  .closed-strip{
+    background:var(--gold); color:#171410;
+    font-family:"IBM Plex Mono", monospace; font-weight:700; font-size:13px;
+    letter-spacing:0.06em; text-transform:uppercase;
+    padding:9px 14px; margin-top:16px;
+  }
+  .closed-strip .dot{ display:inline-block; width:9px; height:9px; background:#171410; margin-right:10px; vertical-align:1px; }
+
+  /* ── Steps ─────────────────────────────── */
+  .step{
+    background:var(--panel);
+    border:1px solid var(--line);
+    margin-top:22px;
+    padding:22px 20px 20px;
+  }
+  .step-head{ display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; margin-bottom:6px; }
+  .step-num{
+    font-family:"IBM Plex Mono", monospace; font-weight:700; font-size:13px;
+    color:var(--gold-ink); letter-spacing:0.08em;
+    display:inline-flex; align-items:center; gap:6px;
+  }
+  .step h2{ font-size:21px; font-weight:900; margin:0; letter-spacing:-0.01em; }
+  .pill{
+    margin-left:auto;
+    font-family:"IBM Plex Mono", monospace; font-size:11px; font-weight:700;
+    letter-spacing:0.08em; text-transform:uppercase;
+    border:1px solid var(--line); color:var(--ink-soft);
+    padding:3px 9px; white-space:nowrap;
+  }
+  .pill.done{ border-color:var(--ok); color:var(--ok); }
+  .pill.live{ background:var(--gold); border-color:var(--gold); color:#171410; }
+  .step p{ color:var(--ink-soft); margin:8px 0; max-width:66ch; }
+  .step p strong, .step li strong{ color:var(--ink); }
+  .step ul{ color:var(--ink-soft); margin:8px 0; padding-left:20px; }
+  .step li{ margin:3px 0; }
+
+  label.field-label{
+    display:block; margin:16px 0 6px;
+    font-family:"IBM Plex Mono", monospace; font-size:11px; font-weight:700;
+    letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-soft);
+  }
+  input[type="text"]{
+    width:100%; box-sizing:border-box;
+    font-family:"IBM Plex Mono", monospace; font-size:14px;
+    background:var(--field); color:var(--ink);
+    border:1px solid var(--line); border-radius:0;
+    padding:11px 12px;
+  }
+  input[type="text"]:focus{ outline:2px solid var(--gold); outline-offset:0; border-color:var(--gold-deep); }
+  input[readonly]{ opacity:0.75; }
+  .hint{ font-size:13px; color:var(--ink-soft); margin-top:5px; }
+
+  .btn{
+    appearance:none; cursor:pointer;
+    font-family:"Archivo", sans-serif; font-weight:700; font-size:15px;
+    background:var(--gold); color:var(--btn-ink);
+    border:2px solid var(--gold-deep);
+    padding:11px 20px; margin-top:16px;
+    box-shadow:3px 3px 0 var(--ink);
+    transition:transform 0.05s ease, box-shadow 0.05s ease;
+  }
+  .btn:hover:not(:disabled){ transform:translate(-1px,-1px); box-shadow:4px 4px 0 var(--ink); }
+  .btn:active:not(:disabled){ transform:translate(2px,2px); box-shadow:1px 1px 0 var(--ink); }
+  .btn:disabled{ opacity:0.38; cursor:not-allowed; box-shadow:none; }
+  .btn.ghost{
+    background:transparent; color:var(--ink);
+    border:2px solid var(--ink); box-shadow:none;
+  }
+  .btn.ghost:hover:not(:disabled){ background:var(--panel-2); transform:none; }
+  .btn.danger{ background:transparent; color:var(--bad); border-color:var(--bad); box-shadow:none; }
+  .btn-row{ display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+  .btn-row .btn{ margin-top:16px; }
+
+  .status-line{
+    font-family:"IBM Plex Mono", monospace; font-size:13px;
+    margin-top:14px; color:var(--ink-soft); word-break:break-all;
+  }
+  .status-line b{ color:var(--ink); }
+  .addr-out{
+    font-family:"IBM Plex Mono", monospace; font-size:13.5px; word-break:break-all;
+    background:var(--panel-2); border:1px dashed var(--line);
+    padding:10px 12px; margin-top:12px; display:none;
+  }
+  .addr-out.show{ display:block; }
+  .addr-out a{ color:var(--gold-ink); }
+
+  .net-switch{ display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; }
+  .net-opt{
+    font-family:"IBM Plex Mono", monospace; font-size:13px; font-weight:700;
+    border:2px solid var(--line); background:var(--field); color:var(--ink-soft);
+    padding:9px 14px; cursor:pointer;
+  }
+  .net-opt[aria-pressed="true"]{ border-color:var(--ink); color:var(--ink); background:var(--gold); }
+
+  .split-row{ display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; }
+  .split-cell{
+    flex:1 1 150px; border:1px solid var(--line); background:var(--panel-2);
+    padding:10px 12px;
+  }
+  .split-cell .pct{ font-family:"IBM Plex Mono", monospace; font-weight:700; font-size:20px; color:var(--gold-ink); }
+  .split-cell .lbl{ font-size:13px; color:var(--ink-soft); }
+
+  details.load-existing{ margin-top:18px; border-top:1px solid var(--line); padding-top:12px; }
+  details.load-existing summary{
+    cursor:pointer; font-family:"IBM Plex Mono", monospace; font-size:12px; font-weight:700;
+    letter-spacing:0.08em; text-transform:uppercase; color:var(--ink-soft);
+  }
+
+  /* ── Summary + log ─────────────────────── */
+  textarea{
+    width:100%; box-sizing:border-box; min-height:220px;
+    font-family:"IBM Plex Mono", monospace; font-size:12.5px; line-height:1.6;
+    background:var(--field); color:var(--ink);
+    border:1px solid var(--line); border-radius:0; padding:12px;
+  }
+  textarea:focus{ outline:2px solid var(--gold); }
+  #log{
+    background:var(--log-bg); color:var(--log-ink);
+    font-family:"IBM Plex Mono", monospace; font-size:12.5px; line-height:1.65;
+    padding:14px 16px; margin-top:14px; min-height:90px;
+    white-space:pre-wrap; word-break:break-all;
+    max-height:320px; overflow-y:auto;
+  }
+  #log .err{ color:#ff8a84; }
+  #log .ok{ color:#7be495; }
+  .foot-note{ margin-top:26px; font-size:13px; color:var(--ink-soft); }
+  .foot-note a{ color:var(--gold-ink); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ══ Intro ══ -->
+  <header class="intro">
+    <h1><svg class="cursor-ic" width="30" height="30" viewBox="0 0 32 32" aria-hidden="true"><polygon points="4,3 4,27 10,21 13,28 16,26.5 13,19.5 20,19.5" fill="#f2b705" stroke="#171410" stroke-width="1.5"/></svg>Deploy Rifera</h1>
+    <p>This page deploys the three Rifera contracts from your own wallet: <strong>Rifera First Take</strong> (the NFT), <strong>CursorClaim</strong>, and <strong>$CURSOR</strong>. Deploy order matters — NFT first, then Claim, then Token, then one wiring call.</p>
+    <p>Every transaction is signed in your wallet. This page never asks for a seed phrase or a private key.</p>
+    <div class="closed-strip"><span class="dot"></span> Mint starts closed — this page never opens it for you. You open it yourself in step 06, only when you are ready.</div>
+  </header>
+
+  <!-- ══ 01 Connect ══ -->
+  <section class="step" id="step-connect">
+    <div class="step-head">
+      <span class="step-num"><svg width="11" height="11" viewBox="0 0 32 32" aria-hidden="true"><polygon points="4,3 4,27 10,21 13,28 16,26.5 13,19.5 20,19.5" fill="currentColor"/></svg>01</span>
+      <h2>Connect wallet</h2>
+      <span class="pill" id="pill-connect">Not connected</span>
+    </div>
+    <p>Connect the wallet that should <strong>own</strong> the contracts. It deploys everything, receives the 5% owner share by default, and is the only wallet that can open mint or withdraw.</p>
+    <div class="net-switch" role="group" aria-label="Network">
+      <button type="button" class="net-opt" id="net-mainnet" aria-pressed="true">BNB Chain mainnet · 56</button>
+      <button type="button" class="net-opt" id="net-testnet" aria-pressed="false">BSC testnet · 97</button>
+    </div>
+    <p class="hint">Pick the network before connecting. The page switches your wallet to it automatically, adding the network first if your wallet does not have it yet. On testnet, the Agent ID field in step 02 must be your mock Agent ID — the real registry only exists on mainnet.</p>
+    <div class="btn-row">
+      <button type="button" class="btn" id="btn-connect">Connect wallet</button>
+    </div>
+    <div class="status-line" id="connect-status">Not connected. Connect the owner wallet to begin.</div>
+  </section>
+
+  <!-- ══ 02 Deploy NFT ══ -->
+  <section class="step" id="step-nft">
+    <div class="step-head">
+      <span class="step-num"><svg width="11" height="11" viewBox="0 0 32 32" aria-hidden="true"><polygon points="4,3 4,27 10,21 13,28 16,26.5 13,19.5 20,19.5" fill="currentColor"/></svg>02</span>
+      <h2>Deploy Rifera First Take</h2>
+      <span class="pill" id="pill-nft">Waiting</span>
+    </div>
+    <p>The NFT: <strong>7,620 takes</strong>, minted by chosen take number. First mint per wallet is free, every extra mint is <strong>0.002 BNB</strong>, upgrades Lv 1–5 cost 0.002 BNB per level. Minting requires a Binance Agent ID.</p>
+    <p>The constructor takes <strong>one argument</strong> — the Agent ID registry the mint gate checks. For BNB mainnet it must be the registry prefilled below. It is <strong>immutable</strong> once deployed, so check it before you deploy.</p>
+    <label class="field-label" for="in-agentid">Agent ID registry (constructor argument)</label>
+    <input type="text" id="in-agentid" class="mono" value="0x60B9262456dE011F7d15a54CdD8c48bAaa8B022F" spellcheck="false" autocomplete="off" />
+    <div class="btn-row">
+      <button type="button" class="btn" id="btn-deploy-nft" disabled>Deploy NFT</button>
+    </div>
+    <div class="addr-out" id="out-nft"></div>
+    <details class="load-existing">
+      <summary>Already deployed? Load the NFT address</summary>
+      <label class="field-label" for="in-load-nft">Rifera First Take address</label>
+      <input type="text" id="in-load-nft" class="mono" placeholder="0x…" spellcheck="false" autocomplete="off" />
+      <div class="btn-row"><button type="button" class="btn ghost" id="btn-load-nft">Load NFT</button></div>
+    </details>
+  </section>
+
+  <!-- ══ 03 Deploy Claim ══ -->
+  <section class="step" id="step-claim">
+    <div class="step-head">
+      <span class="step-num"><svg width="11" height="11" viewBox="0 0 32 32" aria-hidden="true"><polygon points="4,3 4,27 10,21 13,28 16,26.5 13,19.5 20,19.5" fill="currentColor"/></svg>03</span>
+      <h2>Deploy CursorClaim</h2>
+      <span class="pill" id="pill-claim">Waiting</span>
+    </div>
+    <p>The claim contract. Holders claim <strong>$CURSOR directly after mint</strong> — no snapshot — for a fee of <strong>0.00021 BNB</strong> per take, one claim per take. The amount is fixed by the take's level at claim time.</p>
+    <p>Its constructor takes the <strong>NFT address</strong> from step 02. The token is wired in step 05 — until then, claims stay off.</p>
+    <label class="field-label" for="in-claim-nft">NFT address (constructor argument)</label>
+    <input type="text" id="in-claim-nft" class="mono" placeholder="Filled in by step 02" spellcheck="false" autocomplete="off" />
+    <div class="btn-row">
+      <button type="button" class="btn" id="btn-deploy-claim" disabled>Deploy Claim</button>
+    </div>
+    <div class="addr-out" id="out-claim"></div>
+    <details class="load-existing">
+      <summary>Already deployed? Load the Claim address</summary>
+      <label class="field-label" for="in-load-claim">CursorClaim address</label>
+      <input type="text" id="in-load-claim" class="mono" placeholder="0x…" spellcheck="false" autocomplete="off" />
+      <div class="btn-row"><button type="button" class="btn ghost" id="btn-load-claim">Load Claim</button></div>
+    </details>
+  </section>
+
+  <!-- ══ 04 Deploy Token ══ -->
+  <section class="step" id="step-token">
+    <div class="step-head">
+      <span class="step-num"><svg width="11" height="11" viewBox="0 0 32 32" aria-hidden="true"><polygon points="4,3 4,27 10,21 13,28 16,26.5 13,19.5 20,19.5" fill="currentColor"/></svg>04</span>
+      <h2>Deploy $CURSOR</h2>
+      <span class="pill" id="pill-token">Waiting</span>
+    </div>
+    <p>Fixed supply of <strong>10,000,000,000 $CURSOR</strong>, minted once at deploy and split three ways. No further minting is possible.</p>
+    <div class="split-row">
+      <div class="split-cell"><div class="pct">50%</div><div class="lbl">5,000,000,000 → Claim contract (holder pool)</div></div>
+      <div class="split-cell"><div class="pct">45%</div><div class="lbl">4,500,000,000 → LP locker (PancakeSwap liquidity, locked)</div></div>
+      <div class="split-cell"><div class="pct">5%</div><div class="lbl">500,000,000 → Owner</div></div>
+    </div>
+    <label class="field-label" for="in-token-claim">Claim address (constructor argument)</label>
+    <input type="text" id="in-token-claim" class="mono" placeholder="Filled in by step 03" spellcheck="false" autocomplete="off" />
+    <label class="field-label" for="in-lplocker">LP locker address — receives the 45%</label>
+    <input type="text" id="in-lplocker" class="mono" placeholder="0x… (locker contract or multisig)" spellcheck="false" autocomplete="off" />
+    <p class="hint">Use a real locker or multisig address you control. The 45% goes there the moment the token deploys and this page cannot move it afterwards.</p>
+    <label class="field-label" for="in-token-owner">Owner address — receives the 5%</label>
+    <input type="text" id="in-token-owner" class="mono" placeholder="Filled with your wallet when you connect" spellcheck="false" autocomplete="off" />
+    <div class="btn-row">
+      <button type="button" class="btn" id="btn-deploy-token" disabled>Deploy $CURSOR</button>
+    </div>
+    <div class="addr-out" id="out-token"></div>
+    <details class="load-existing">
+      <summary>Already deployed? Load the Token address</summary>
+      <label class="field-label" for="in-load-token">CursorToken ($CURSOR) address</label>
+      <input type="text" id="in-load-token" class="mono" placeholder="0x…" spellcheck="false" autocomplete="off" />
+      <div class="btn-row"><button type="button" class="btn ghost" id="btn-load-token">Load Token</button></div>
+    </details>
+  </section>
+
+  <!-- ══ 05 Wire claim ══ -->
+  <section class="step" id="step-wire">
+    <div class="step-head">
+      <span class="step-num"><svg width="11" height="11" viewBox="0 0 32 32" aria-hidden="true"><polygon points="4,3 4,27 10,21 13,28 16,26.5 13,19.5 20,19.5" fill="currentColor"/></svg>05</span>
+      <h2>Wire the claim contract</h2>
+      <span class="pill" id="pill-wire">Waiting</span>
+    </div>
+    <p>One call: <strong>setToken</strong> points CursorClaim at the $CURSOR token deployed in step 04, so it can pay claims out of its 5B pool. Owner only, and it can only ever be called <strong>once</strong> — it cannot be changed afterwards.</p>
+    <div class="btn-row">
+      <button type="button" class="btn" id="btn-settoken" disabled>Set token on Claim</button>
+      <button type="button" class="btn ghost" id="btn-refresh-wire" disabled>Refresh status</button>
+    </div>
+    <div class="status-line" id="wire-status">Waiting — deploy Claim and Token first.</div>
+  </section>
+
+  <!-- ══ 06 Mint gate ══ -->
+  <section class="step" id="step-mint">
+    <div class="step-head">
+      <span class="step-num"><svg width="11" height="11" viewBox="0 0 32 32" aria-hidden="true"><polygon points="4,3 4,27 10,21 13,28 16,26.5 13,19.5 20,19.5" fill="currentColor"/></svg>06</span>
+      <h2>Open / close mint</h2>
+      <span class="pill" id="pill-mint">Waiting</span>
+    </div>
+    <p>Minting starts <strong>closed</strong> when the NFT is deployed — nobody can mint until you open it here. Open it when you are ready to launch, and close it again any time the same way. Owner only; the contract rejects everyone else.</p>
+    <div class="btn-row">
+      <button type="button" class="btn" id="btn-mint-open" disabled>Open mint</button>
+      <button type="button" class="btn danger" id="btn-mint-close" disabled>Close mint</button>
+      <button type="button" class="btn ghost" id="btn-refresh-mint" disabled>Refresh status</button>
+    </div>
+    <div class="status-line" id="mint-status">Waiting — deploy or load the NFT first.</div>
+  </section>
+
+  <!-- ══ 07 Withdraw ══ -->
+  <section class="step" id="step-withdraw">
+    <div class="step-head">
+      <span class="step-num"><svg width="11" height="11" viewBox="0 0 32 32" aria-hidden="true"><polygon points="4,3 4,27 10,21 13,28 16,26.5 13,19.5 20,19.5" fill="currentColor"/></svg>07</span>
+      <h2>Withdraw</h2>
+      <span class="pill" id="pill-withdraw">Owner only</span>
+    </div>
+    <p>Two balances, both owner only. The <strong>NFT</strong> holds extra-mint and upgrade payments (0.002 BNB each). The <strong>Claim</strong> contract holds claim fees (0.00021 BNB per take). Each withdraw sends that contract's whole BNB balance to the owner wallet.</p>
+    <div class="btn-row">
+      <button type="button" class="btn" id="btn-wd-nft" disabled>Withdraw from NFT</button>
+      <button type="button" class="btn" id="btn-wd-claim" disabled>Withdraw claim fees</button>
+      <button type="button" class="btn ghost" id="btn-refresh-wd" disabled>Refresh balances</button>
+    </div>
+    <div class="status-line" id="wd-status">Waiting — deploy or load the contracts first.</div>
+  </section>
+
+  <!-- ══ Summary ══ -->
+  <section class="step" id="step-summary">
+    <div class="step-head">
+      <span class="step-num"><svg width="11" height="11" viewBox="0 0 32 32" aria-hidden="true"><polygon points="4,3 4,27 10,21 13,28 16,26.5 13,19.5 20,19.5" fill="currentColor"/></svg>08</span>
+      <h2>Deployment summary — send this to Muse</h2>
+    </div>
+    <p>When the deploy is done, copy this whole box in one paste and send it back. The addresses get wired into rifera.xyz from there, and the Sourcify verification command at the bottom is ready to run as-is.</p>
+    <textarea id="summary" readonly spellcheck="false"></textarea>
+    <div class="btn-row">
+      <button type="button" class="btn" id="btn-copy-summary">Copy summary</button>
+    </div>
+    <div class="status-line" id="copy-status"></div>
+  </section>
+
+  <!-- ══ Log ══ -->
+  <section class="step" id="step-log">
+    <div class="step-head">
+      <span class="step-num"><svg width="11" height="11" viewBox="0 0 32 32" aria-hidden="true"><polygon points="4,3 4,27 10,21 13,28 16,26.5 13,19.5 20,19.5" fill="currentColor"/></svg>▸</span>
+      <h2>Log</h2>
+    </div>
+    <div id="log" aria-live="polite"></div>
+  </section>
+
+  <p class="foot-note">Contracts compiled with Solidity 0.8.24, optimizer 200 runs — the exact build that verifies as a <strong>full match</strong> on <a href="https://sourcify.dev/" target="_blank" rel="noopener">Sourcify</a>. Trading for $CURSOR is planned for Tue 10 Nov 2026, 00:00 UTC on PancakeSwap; adding liquidity from the locked 45% is a separate step after this deploy.</p>
+
+</div>
+
+<script>
+/* Compiled artifacts (ABI + creation bytecode) from the Rifera contracts
+   project — solc 0.8.24, optimizer 200 runs. Do not hand-edit. */
+var ART = {"nft":{"abi":[{"type":"constructor","inputs":[{"name":"agentId_","type":"address","internalType":"address"}],"stateMutability":"nonpayable"},{"type":"function","name":"EXTRA_MINT_PRICE","inputs":[],"outputs":[{"name":"","type":"uint256","internalType":"uint256"}],"stateMutability":"view"},{"type":"function","name":"MAX_LEVEL","inputs":[],"outputs":[{"name":"","type":"uint8","internalType":"uint8"}],"stateMutability":"view"},{"type":"function","name":"MAX_SUPPLY","inputs":[],"outputs":[{"name":"","type":"uint256","internalType":"uint256"}],"stateMutability":"view"},{"type":"function","name":"UPGRADE_PRICE","inputs":[],"outputs":[{"name":"","type":"uint256","internalType":"uint256"}],"stateMutability":"view"},{"type":"function","name":"agentId","inputs":[],"outputs":[{"name":"","type":"address","internalType":"contract IAgentId"}],"stateMutability":"view"},{"type":"function","name":"approve","inputs":[{"name":"to","type":"address","internalType":"address"},{"name":"tokenId","type":"uint256","internalType":"uint256"}],"outputs":[],"stateMutability":"nonpayable"},{"type":"function","name":"balanceOf","inputs":[{"name":"owner","type":"address","internalType":"address"}],"outputs":[{"name":"","type":"uint256","internalType":"uint256"}],"stateMutability":"view"},{"type":"function","name":"getApproved","inputs":[{"name":"tokenId","type":"uint256","internalType":"uint256"}],"outputs":[{"name":"","type":"address","internalType":"address"}],"stateMutability":"view"},{"type":"function","name":"isApprovedForAll","inputs":[{"name":"owner","type":"address","internalType":"address"},{"name":"operator","type":"address","internalType":"address"}],"outputs":[{"name":"","type":"bool","internalType":"bool"}],"stateMutability":"view"},{"type":"function","name":"levelOf","inputs":[{"name":"tokenId","type":"uint256","internalType":"uint256"}],"outputs":[{"name":"","type":"uint8","internalType":"uint8"}],"stateMutability":"view"},{"type":"function","name":"mint","inputs":[{"name":"takeId","type":"uint256","internalType":"uint256"}],"outputs":[],"stateMutability":"payable"},{"type":"function","name":"mintOpen","inputs":[],"outputs":[{"name":"","type":"bool","internalType":"bool"}],"stateMutability":"view"},{"type":"function","name":"mintsByWallet","inputs":[{"name":"","type":"address","internalType":"address"}],"outputs":[{"name":"","type":"uint256","internalType":"uint256"}],"stateMutability":"view"},{"type":"function","name":"name","inputs":[],"outputs":[{"name":"","type":"string","internalType":"string"}],"stateMutability":"view"},{"type":"function","name":"owner","inputs":[],"outputs":[{"name":"","type":"address","internalType":"address"}],"stateMutability":"view"},{"type":"function","name":"ownerOf","inputs":[{"name":"tokenId","type":"uint256","internalType":"uint256"}],"outputs":[{"name":"","type":"address","internalType":"address"}],"stateMutability":"view"},{"type":"function","name":"renounceOwnership","inputs":[],"outputs":[],"stateMutability":"nonpayable"},{"type":"function","name":"safeTransferFrom","inputs":[{"name":"from","type":"address","internalType":"address"},{"name":"to","type":"address","internalType":"address"},{"name":"tokenId","type":"uint256","internalType":"uint256"}],"outputs":[],"stateMutability":"nonpayable"},{"type":"function","name":"safeTransferFrom","inputs":[{"name":"from","type":"address","internalType":"address"},{"name":"to","type":"address","internalType":"address"},{"name":"tokenId","type":"uint256","internalType":"uint256"},{"name":"data","type":"bytes","internalType":"bytes"}],"outputs":[],"stateMutability":"nonpayable"},{"type":"function","name":"setApprovalForAll","inputs":[{"name":"operator","type":"address","internalType":"address"},{"name":"approved","type":"bool","internalType":"bool"}],"outputs":[],"stateMutability":"nonpayable"},{"type":"function","name":"setMintOpen","inputs":[{"name":"open_","type":"bool","internalType":"bool"}],"outputs":[],"stateMutability":"nonpayable"},{"type":"function","name":"supportsInterface","inputs":[{"name":"interfaceId","type":"bytes4","internalType":"bytes4"}],"outputs":[{"name":"","type":"bool","internalType":"bool"}],"stateMutability":"view"},{"type":"function","name":"symbol","inputs":[],"outputs":[{"name":"","type":"string","internalType":"string"}],"stateMutability":"view"},{"type":"function","name":"tokenURI","inputs":[{"name":"tokenId","type":"uint256","internalType":"uint256"}],"outputs":[{"name":"","type":"string","internalType":"string"}],"stateMutability":"view"},{"type":"function","name":"totalMinted","inputs":[],"outputs":[{"name":"","type":"uint256","internalType":"uint256"}],"stateMutability":"view"},{"type":"function","name":"transferFrom","inputs":[{"name":"from","type":"address","internalType":"address"},{"name":"to","type":"address","internalType":"address"},{"name":"tokenId","type":"uint256","internalType":"uint256"}],"outputs":[],"stateMutability":"nonpayable"},{"type":"function","name":"transferOwnership","inputs":[{"name":"newOwner","type":"address","internalType":"address"}],"outputs":[],"stateMutability":"nonpayable"},{"type":"function","name":"upgrade","inputs":[{"name":"tokenId","type":"uint256","internalType":"uint256"}],"outputs":[],"stateMutability":"payable"},{"type":"function","name":"withdraw","inputs":[],"outputs":[],"stateMutability":"nonpayable"},{"type":"event","name":"Approval","inputs":[{"name":"owner","type":"address","indexed":true,"internalType":"address"},{"name":"approved","type":"address","indexed":true,"internalType":"address"},{"name":"tokenId","type":"uint256","indexed":true,"internalType":"uint256"}],"anonymous":false},{"type":"event","name":"ApprovalForAll","inputs":[{"name":"owner","type":"address","indexed":true,"internalType":"address"},{"name":"operator","type":"address","indexed":true,"internalType":"address"},{"name":"approved","type":"bool","indexed":false,"internalType":"bool"}],"anonymous":false},{"type":"event","name":"MintOpenChanged","inputs":[{"name":"open","type":"bool","indexed":false,"internalType":"bool"}],"anonymous":false},{"type":"event","name":"OwnershipTransferred","inputs":[{"name":"previousOwner","type":"address","indexed":true,"internalType":"address"},{"name":"newOwner","type":"address","indexed":true,"internalType":"address"}],"anonymous":false},{"type":"event","name":"TakeMinted","inputs":[{"name":"minter","type":"address","indexed":true,"internalType":"address"},{"name":"takeId","type":"uint256","indexed":true,"internalType":"uint256"},{"name":"pricePaid","type":"uint256","indexed":false,"internalType":"uint256"}],"anonymous":false},{"type":"event","name":"TakeUpgraded","inputs":[{"name":"owner","type":"address","indexed":true,"internalType":"address"},{"name":"tokenId","type":"uint256","indexed":true,"internalType":"uint256"},{"name":"newLevel","type":"uint8","indexed":false,"internalType":"uint8"}],"anonymous":false},{"type":"event","name":"Transfer","inputs":[{"name":"from","type":"address","indexed":true,"internalType":"address"},{"name":"to","type":"address","indexed":true,"internalType":"address"},{"name":"tokenId","type":"uint256","indexed":true,"internalType":"uint256"}],"anonymous":false},{"type":"error","name":"AlreadyMinted","inputs":[{"name":"takeId","type":"uint256","internalType":"uint256"}]},{"type":"error","name":"ERC721IncorrectOwner","inputs":[{"name":"sender","type":"address","internalType":"address"},{"name":"tokenId","type":"uint256","internalType":"uint256"},{"name":"owner","type":"address","internalType":"address"}]},{"type":"error","name":"ERC721InsufficientApproval","inputs":[{"name":"operator","type":"address","internalType":"address"},{"name":"tokenId","type":"uint256","internalType":"uint256"}]},{"type":"error","name":"ERC721InvalidApprover","inputs":[{"name":"approver","type":"address","internalType":"address"}]},{"type":"error","name":"ERC721InvalidOperator","inputs":[{"name":"operator","type":"address","internalType":"address"}]},{"type":"error","name":"ERC721InvalidOwner","inputs":[{"name":"owner","type":"address","internalType":"address"}]},{"type":"error","name":"ERC721InvalidReceiver","inputs":[{"name":"receiver","type":"address","internalType":"address"}]},{"type":"error","name":"ERC721InvalidSender","inputs":[{"name":"sender","type":"address","internalType":"address"}]},{"type":"error","name":"ERC721NonexistentToken","inputs":[{"name":"tokenId","type":"uint256","internalType":"uint256"}]},{"type":"error","name":"InsufficientPayment","inputs":[{"name":"required","type":"uint256","internalType":"uint256"},{"name":"sent","type":"uint256","internalType":"uint256"}]},{"type":"error","name":"InvalidTakeId","inputs":[{"name":"takeId","type":"uint256","internalType":"uint256"}]},{"type":"error","name":"MaxLevelReached","inputs":[{"name":"tokenId","type":"uint256","internalType":"uint256"}]},{"type":"error","name":"MintClosed","inputs":[]},{"type":"error","name":"NoAgentId","inputs":[{"name":"wallet","type":"address","internalType":"address"}]},{"type":"error","name":"NotTokenOwner","inputs":[{"name":"caller","type":"address","internalType":"address"},{"name":"tokenId","type":"uint256","internalType":"uint256"}]},{"type":"error","name":"OwnableInvalidOwner","inputs":[{"name":"owner","type":"address","internalType":"address"}]},{"type":"error","name":"OwnableUnauthorizedAccount","inputs":[{"name":"account","type":"address","internalType":"address"}]},{"type":"error","name":"ReentrancyGuardReentrantCall","inputs":[]},{"type":"error","name":"WithdrawFailed","inputs":[]}],"bytecode":"0x60a060405234801562000010575f80fd5b50604051620029d8380380620029d883398101604081905262000033916200019a565b33604051806040016040528060118152602001705269666572612046697273742054616b6560781b8152506040518060400160405280600681526020016552494645524160d01b815250815f90816200008d919062000267565b5060016200009c828262000267565b5050506001600160a01b038116620000ce57604051631e4fbdf760e01b81525f60048201526024015b60405180910390fd5b620000d98162000149565b5060016007556001600160a01b038116620001375760405162461bcd60e51b815260206004820152601860248201527f6167656e74206964206973207a65726f206164647265737300000000000000006044820152606401620000c5565b6001600160a01b031660805262000333565b600680546001600160a01b038381166001600160a01b0319831681179093556040519116919082907f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0905f90a35050565b5f60208284031215620001ab575f80fd5b81516001600160a01b0381168114620001c2575f80fd5b9392505050565b634e487b7160e01b5f52604160045260245ffd5b600181811c90821680620001f257607f821691505b6020821081036200021157634e487b7160e01b5f52602260045260245ffd5b50919050565b601f8211156200026257805f5260205f20601f840160051c810160208510156200023e5750805b601f840160051c820191505b818110156200025f575f81556001016200024a565b50505b505050565b81516001600160401b03811115620002835762000283620001c9565b6200029b81620002948454620001dd565b8462000217565b602080601f831160018114620002d1575f8415620002b95750858301515b5f19600386901b1c1916600185901b1785556200032b565b5f85815260208120601f198616915b828110156200030157888601518255948401946001909101908401620002e0565b50858210156200031f57878501515f19600388901b60f8161c191681555b505060018460011b0185555b505050505050565b608051612685620003535f395f81816104af01526109fd01526126855ff3fe6080604052600436106101ba575f3560e01c80638da5cb5b116100f2578063b88d4fde11610092578063e985e9c511610062578063e985e9c5146104d1578063f2fde38b146104f0578063f8004d311461050f578063ff688979146103c0575f80fd5b8063b88d4fde14610435578063c87b56dd14610454578063d535391614610473578063e84f43b71461049e575f80fd5b8063a0712d68116100cd578063a0712d68146103da578063a22cb465146103ed578063a2309ff81461040c578063a49062d414610421575f80fd5b80638da5cb5b1461038f57806395d89b41146103ac57806396b04c75146103c0575f80fd5b80633ccfd60b1161015d5780636352211e116101385780636352211e1461030c5780636d5e30321461032b57806370a082311461035c578063715018a61461037b575f80fd5b80633ccfd60b146102c657806342842e0e146102da57806345977d03146102f9575f80fd5b8063095ea7b311610198578063095ea7b31461024a57806323b872dd1461026b57806324bbd0491461028a57806332cb6b0c146102a3575f80fd5b806301ffc9a7146101be57806306fdde03146101f2578063081812fc14610213575b5f80fd5b3480156101c9575f80fd5b506101dd6101d8366004611c09565b61052e565b60405190151581526020015b60405180910390f35b3480156101fd575f80fd5b5061020661057f565b6040516101e99190611c71565b34801561021e575f80fd5b5061023261022d366004611c83565b61060e565b6040516001600160a01b0390911681526020016101e9565b348015610255575f80fd5b50610269610264366004611cb5565b610635565b005b348015610276575f80fd5b50610269610285366004611cdd565b610644565b348015610295575f80fd5b506008546101dd9060ff1681565b3480156102ae575f80fd5b506102b8611dc481565b6040519081526020016101e9565b3480156102d1575f80fd5b506102696106d2565b3480156102e5575f80fd5b506102696102f4366004611cdd565b61075c565b610269610307366004611c83565b61077b565b348015610317575f80fd5b50610232610326366004611c83565b6108c2565b348015610336575f80fd5b5061034a610345366004611c83565b6108cc565b60405160ff90911681526020016101e9565b348015610367575f80fd5b506102b8610376366004611d16565b6108ec565b348015610386575f80fd5b50610269610931565b34801561039a575f80fd5b506006546001600160a01b0316610232565b3480156103b7575f80fd5b50610206610944565b3480156103cb575f80fd5b506102b866071afd498d000081565b6102696103e8366004611c83565b610953565b3480156103f8575f80fd5b50610269610407366004611d3e565b610b8f565b348015610417575f80fd5b506102b860095481565b34801561042c575f80fd5b5061034a600581565b348015610440575f80fd5b5061026961044f366004611d83565b610b9a565b34801561045f575f80fd5b5061020661046e366004611c83565b610bb2565b34801561047e575f80fd5b506102b861048d366004611d16565b600a6020525f908152604090205481565b3480156104a9575f80fd5b506102327f000000000000000000000000000000000000000000000000000000000000000081565b3480156104dc575f80fd5b506101dd6104eb366004611e58565b610c85565b3480156104fb575f80fd5b5061026961050a366004611d16565b610cb2565b34801561051a575f80fd5b50610269610529366004611e80565b610cec565b5f6001600160e01b031982166380ac58cd60e01b148061055e57506001600160e01b03198216635b5e139f60e01b145b8061057957506301ffc9a760e01b6001600160e01b03198316145b92915050565b60605f805461058d90611e99565b80601f01602080910402602001604051908101604052809291908181526020018280546105b990611e99565b80156106045780601f106105db57610100808354040283529160200191610604565b820191905f5260205f20905b8154815290600101906020018083116105e757829003601f168201915b5050505050905090565b5f61061882610d3b565b505f828152600460205260409020546001600160a01b0316610579565b610640828233610d73565b5050565b6001600160a01b03821661067257604051633250574960e11b81525f60048201526024015b60405180910390fd5b5f61067e838333610d80565b9050836001600160a01b0316816001600160a01b0316146106cc576040516364283d7b60e01b81526001600160a01b0380861660048301526024820184905282166044820152606401610669565b50505050565b6106da610e74565b475f6106ee6006546001600160a01b031690565b6001600160a01b0316826040515f6040518083038185875af1925050503d805f8114610735576040519150601f19603f3d011682016040523d82523d5f602084013e61073a565b606091505b505090508061064057604051631d42c86760e21b815260040160405180910390fd5b61077683838360405180602001604052805f815250610b9a565b505050565b610783610ea1565b5f61078d82610d3b565b90506001600160a01b03811633146107c157604051632c52f11160e11b815233600482015260248101839052604401610669565b5f828152600b602052604090205460ff16600581106107f6576040516325f695b960e21b815260048101849052602401610669565b66071afd498d000034101561082d5760405163b99e2ab760e01b815266071afd498d00006004820152346024820152604401610669565b610838816001611ee5565b5f848152600b60205260409020805460ff191660ff9290921691909117905582337f0aceea74fd16e3a0bf44446908ad56af89e37d031bf4d7767fdae232d79a1e55610885846001611ee5565b60405160ff909116815260200160405180910390a36108b36108ae66071afd498d000034611efe565b610ecb565b50506108bf6001600755565b50565b5f61057982610d3b565b5f6108d682610d3b565b50505f908152600b602052604090205460ff1690565b5f6001600160a01b038216610916576040516322718ad960e21b81525f6004820152602401610669565b506001600160a01b03165f9081526003602052604090205490565b610939610e74565b6109425f610f5a565b565b60606001805461058d90611e99565b61095b610ea1565b60085460ff1661097e5760405163589ed34b60e01b815260040160405180910390fd5b80158061098c5750611dc481115b156109ad576040516338d0ca7f60e11b815260048101829052602401610669565b5f818152600260205260409020546001600160a01b0316156109e5576040516314b27b7f60e31b815260048101829052602401610669565b6040516370a0823160e01b81523360048201526001907f00000000000000000000000000000000000000000000000000000000000000006001600160a01b0316906370a0823190602401602060405180830381865afa158015610a4a573d5f803e3d5ffd5b505050506040513d601f19601f82011682018060405250810190610a6e9190611f11565b1015610a8f576040516306189c6d60e41b8152336004820152602401610669565b335f908152600a602052604081205415610ab05766071afd498d0000610ab2565b5f5b905080341015610ade5760405163b99e2ab760e01b815260048101829052346024820152604401610669565b5f828152600b60205260408120805460ff191660019081179091556009805491929091610b0c908490611f28565b9091555050335f908152600a60205260408120805460019290610b30908490611f28565b90915550610b4090503383610fab565b604051818152829033907f4ef5e7ee4c795953b0f087e1681d8474bf42d19bbb117a46424bb30b840af65a9060200160405180910390a3610b846108ae8234611efe565b506108bf6001600755565b610640338383610fc4565b610ba5848484610644565b6106cc3385858585611062565b6060610bbd82610d3b565b505f610bd0610bcb8461118a565b6113ea565b90505f610c5a610bdf85611410565b83610be987611410565b5f888152600b6020526040902054610c039060ff16611410565b610c0c896114a0565b610c158a611593565b610c26610c218c61166d565b611410565b610c2f8c611679565b604051602001610c46989796959493929190611f56565b6040516020818303038152906040526113ea565b905080604051602001610c6d91906121c9565b60405160208183030381529060405292505050919050565b6001600160a01b039182165f90815260056020908152604080832093909416825291909152205460ff1690565b610cba610e74565b6001600160a01b038116610ce357604051631e4fbdf760e01b81525f6004820152602401610669565b6108bf81610f5a565b610cf4610e74565b6008805460ff19168215159081179091556040519081527fa9f739ee29a6336acdfe5b044a6dce0d70579031be6dbdece2ac0848d8c2a0809060200160405180910390a150565b5f818152600260205260408120546001600160a01b03168061057957604051637e27328960e01b815260048101849052602401610669565b610776838383600161175e565b5f828152600260205260408120546001600160a01b0390811690831615610dac57610dac818486611862565b6001600160a01b03811615610de657610dc75f855f8061175e565b6001600160a01b0381165f90815260036020526040902080545f190190555b6001600160a01b03851615610e14576001600160a01b0385165f908152600360205260409020805460010190555b5f8481526002602052604080822080546001600160a01b0319166001600160a01b0389811691821790925591518793918516917fddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef91a490505b9392505050565b6006546001600160a01b031633146109425760405163118cdaa760e01b8152336004820152602401610669565b600260075403610ec457604051633ee5aeb560e01b815260040160405180910390fd5b6002600755565b805f03610ed55750565b6040515f90339083908381818185875af1925050503d805f8114610f14576040519150601f19603f3d011682016040523d82523d5f602084013e610f19565b606091505b50509050806106405760405162461bcd60e51b815260206004820152600d60248201526c1c99599d5b990819985a5b1959609a1b6044820152606401610669565b600680546001600160a01b038381166001600160a01b0319831681179093556040519116919082907f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0905f90a35050565b610640828260405180602001604052805f8152506118c6565b6001600160a01b038216610ff657604051630b61174360e31b81526001600160a01b0383166004820152602401610669565b6001600160a01b038381165f81815260056020908152604080832094871680845294825291829020805460ff191686151590811790915591519182527f17307eab39ab6107e8899845ad3d59bd9653f200f220920489ca2b5937696c31910160405180910390a3505050565b6001600160a01b0383163b1561118357604051630a85bd0160e11b81526001600160a01b0384169063150b7a02906110a490889088908790879060040161220d565b6020604051808303815f875af19250505080156110de575060408051601f3d908101601f191682019092526110db91810190612249565b60015b611145573d80801561110b576040519150601f19603f3d011682016040523d82523d5f602084013e611110565b606091505b5080515f0361113d57604051633250574960e11b81526001600160a01b0385166004820152602401610669565b805160208201fd5b6001600160e01b03198116630a85bd0160e11b1461118157604051633250574960e11b81526001600160a01b0385166004820152602401610669565b505b5050505050565b60605f611196836114a0565b90505f6111a284611593565b90505f6111ae8561166d565b5f868152600b6020908152604080832054815192830190915291815291925060ff169060018390036111fa57604051806060016040528060288152602001612628602891399050611238565b82600303611238575060408051808201909152601e81527f207472616e73666f726d3d22726f74617465282d31322031362031362922000060208201525b60408051602081019091525f8152600260ff84161061127457856040516020016112629190612264565b60405160208183030381529060405290505b60408051602081019091525f8152600360ff8516106112a9576040518060600160405280602f81526020016125f9602f913990505b60408051602081019091525f8152600460ff86161061137957604051602001611367907f3c706f6c79676f6e20706f696e74733d22342c3320342c32372031302c32312081527f31332c32382031362c32362e352031332c31392e352032302c31392e3522206660208201527f696c6c3d222333354334444322206f7061636974793d22302e3435222074726160408201527f6e73666f726d3d227472616e736c61746528332c3329222f3e00000000000000606082015260790190565b60405160208183030381529060405290505b60408051602081019091525f8152600560ff8716106113ae576040518060800160405280605a815260200161255f605a913990505b878483878c87866040516020016113cb9796959493929190612329565b6040516020818303038152906040529950505050505050505050919050565b6060610579826040518060600160405280604081526020016125b96040913960016118dd565b60605f61141c83611a58565b60010190505f8167ffffffffffffffff81111561143b5761143b611d6f565b6040519080825280601f01601f191660200182016040528015611465576020820181803683370190505b5090508181016020015b5f19016f181899199a1a9b1b9c1cb0b131b232b360811b600a86061a8153600a850494508461146f57509392505050565b6040805160e081018252600760a08201818152662346324237303560c81b60c0840152825282518084018452818152662333354334444360c81b60208083019190915280840191909152835180850185528281526608ccd11110ce0d60ca1b8183015283850152835180850185528281526608d14d4d0e0d1160ca1b818301526060808501919091528451808601865292835266119c211ba1a32360c91b8383015260808401929092528351808201869052845180820383018152908501909452835193019290922081906115779060059061250d565b6005811061158757611587612520565b60200201519392505050565b6040805160e081018252600760a08201818152660466082607260760cb1b60c0840152825282518084018452818152662331333131303960c81b6020808301919091528084019190915283518085018552828152662330443141313760c81b8183015283850152835180850185528281526608cc4dcc4c8c8d60ca1b8183015260608085019190915284518086018652928352660233141313231360cc1b8383015260808401929092528351808201869052845180820383018152908501909452835193019290922081906115779060059060081c61250d565b5f61057960058361250d565b60605f60405180608001604052806040518060400160405280600681526020016553746561647960d01b81525081526020016040518060400160405280600581526020016450756c736560d81b8152508152602001604051806040016040528060048152602001634c69766560e01b815250815260200160405180604001604052806005815260200164426c696e6b60d81b815250815250905080600460108560405160200161172b91815260200190565b60408051601f19818403018152919052805160209091012061174e92911c61250d565b6004811061158757611587612520565b808061177257506001600160a01b03821615155b15611833575f61178184610d3b565b90506001600160a01b038316158015906117ad5750826001600160a01b0316816001600160a01b031614155b80156117c057506117be8184610c85565b155b156117e95760405163a9fbf51f60e01b81526001600160a01b0384166004820152602401610669565b81156118315783856001600160a01b0316826001600160a01b03167f8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b92560405160405180910390a45b505b50505f90815260046020526040902080546001600160a01b0319166001600160a01b0392909216919091179055565b61186d838383611b2f565b610776576001600160a01b03831661189b57604051637e27328960e01b815260048101829052602401610669565b60405163177e802f60e01b81526001600160a01b038316600482015260248101829052604401610669565b6118d08383611b93565b610776335f858585611062565b606083515f036118fb575060408051602081019091525f8152610e6d565b5f8261192b576003855160046119119190612534565b61191c906002611f28565b611926919061254b565b611950565b60038551600261193b9190611f28565b611945919061254b565b611950906004612534565b90505f8167ffffffffffffffff81111561196c5761196c611d6f565b6040519080825280601f01601f191660200182016040528015611996576020820181803683370190505b509050600185016020820187885189016020810180515f82525b82841015611a0b576003840193508351603f8160121c168701518653600186019550603f81600c1c168701518653600186019550603f8160061c168701518653600186019550603f81168701518653506001850194506119b0565b905250508515611a4c57600388510660018114611a2f5760028114611a4257611a4a565b603d6001830353603d6002830353611a4a565b603d60018303535b505b50909695505050505050565b5f8072184f03e93ff9f4daa797ed6e38ed64bf6a1f0160401b8310611a965772184f03e93ff9f4daa797ed6e38ed64bf6a1f0160401b830492506040015b6d04ee2d6d415b85acef81000000008310611ac2576d04ee2d6d415b85acef8100000000830492506020015b662386f26fc100008310611ae057662386f26fc10000830492506010015b6305f5e1008310611af8576305f5e100830492506008015b6127108310611b0c57612710830492506004015b60648310611b1e576064830492506002015b600a83106105795760010192915050565b5f6001600160a01b03831615801590611b8b5750826001600160a01b0316846001600160a01b03161480611b685750611b688484610c85565b80611b8b57505f828152600460205260409020546001600160a01b038481169116145b949350505050565b6001600160a01b038216611bbc57604051633250574960e11b81525f6004820152602401610669565b5f611bc883835f610d80565b90506001600160a01b03811615610776576040516339e3563760e11b81525f6004820152602401610669565b6001600160e01b0319811681146108bf575f80fd5b5f60208284031215611c19575f80fd5b8135610e6d81611bf4565b5f5b83811015611c3e578181015183820152602001611c26565b50505f910152565b5f8151808452611c5d816020860160208601611c24565b601f01601f19169290920160200192915050565b602081525f610e6d6020830184611c46565b5f60208284031215611c93575f80fd5b5035919050565b80356001600160a01b0381168114611cb0575f80fd5b919050565b5f8060408385031215611cc6575f80fd5b611ccf83611c9a565b946020939093013593505050565b5f805f60608486031215611cef575f80fd5b611cf884611c9a565b9250611d0660208501611c9a565b9150604084013590509250925092565b5f60208284031215611d26575f80fd5b610e6d82611c9a565b80358015158114611cb0575f80fd5b5f8060408385031215611d4f575f80fd5b611d5883611c9a565b9150611d6660208401611d2f565b90509250929050565b634e487b7160e01b5f52604160045260245ffd5b5f805f8060808587031215611d96575f80fd5b611d9f85611c9a565b9350611dad60208601611c9a565b925060408501359150606085013567ffffffffffffffff80821115611dd0575f80fd5b818701915087601f830112611de3575f80fd5b813581811115611df557611df5611d6f565b604051601f8201601f19908116603f01168101908382118183101715611e1d57611e1d611d6f565b816040528281528a6020848701011115611e35575f80fd5b826020860160208301375f60208483010152809550505050505092959194509250565b5f8060408385031215611e69575f80fd5b611e7283611c9a565b9150611d6660208401611c9a565b5f60208284031215611e90575f80fd5b610e6d82611d2f565b600181811c90821680611ead57607f821691505b602082108103611ecb57634e487b7160e01b5f52602260045260245ffd5b50919050565b634e487b7160e01b5f52601160045260245ffd5b60ff818116838216019081111561057957610579611ed1565b8181038181111561057957610579611ed1565b5f60208284031215611f21575f80fd5b5051919050565b8082018082111561057957610579611ed1565b5f8151611f4c818560208601611c24565b9290920192915050565b7f7b226e616d65223a225269666572612046697273742054616b6520230000000081525f61201a612014611fdf611f90601c86018e611f3b565b7f222c226465736372697074696f6e223a22412074696e7920706978656c20637581527f72736f722074686174207265636f7264732065766572797468696e672e222c006020820152603f0190565b7f22696d616765223a22646174613a696d6167652f7376672b786d6c3b626173658152620d8d0b60ea1b602082015260230190565b8a611f3b565b6f222c2261747472696275746573223a5b60801b81527f7b2274726169745f74797065223a2254616b65222c2276616c7565223a0000006010820152612063602d82018a611f3b565b611f4b60f21b815290507f7b2274726169745f74797065223a224c6576656c222c2276616c7565223a000060028201526120a06020820189611f3b565b611f4b60f21b815290507f7b2274726169745f74797065223a22436f6c6f72222c2276616c7565223a220060028201526120dd6021820188611f3b565b62089f4b60ea1b815290507f7b2274726169745f74797065223a224261636b67726f756e64222c2276616c7560038201526332911d1160e11b6023820152612129602782015b87611f3b565b62089f4b60ea1b815290507f7b2274726169745f74797065223a2256617269616e74222c2276616c7565223a60038201526121676023820186611f3b565b611f4b60f21b815290507f7b2274726169745f74797065223a225369676e616c222c2276616c7565223a2260028201526121a46022820185611f3b565b61227d60f01b8152615d7d60f01b60028201526004019b9a5050505050505050505050565b7f646174613a6170706c69636174696f6e2f6a736f6e3b6261736536342c00000081525f825161220081601d850160208701611c24565b91909101601d0192915050565b6001600160a01b03858116825284166020820152604081018390526080606082018190525f9061223f90830184611c46565b9695505050505050565b5f60208284031215612259575f80fd5b8151610e6d81611bf4565b7f3c706f6c79676f6e20706f696e74733d22342c3320342c32372031302c32312081527f31332c32382031362c32362e352031332c31392e352032302c31392e3522206660208201526434b6361e9160d91b60408201525f82516122cf816045850160208701611c24565b7f22206f7061636974793d22302e323522207472616e73666f726d3d227472616e60459390910192830152507f736c61746528312e352c312e3529207363616c6528312e303229222f3e0000006065820152608201919050565b7f3c73766720786d6c6e733d22687474703a2f2f7777772e77332e6f72672f323081527f30302f737667222076696577426f783d2230203020333220333222207368617060208201527f652d72656e646572696e673d2263726973704564676573223e0000000000000060408201527f3c726563742077696474683d22333222206865696768743d223332222066696c605982015262361e9160e91b60798201525f88516123de81607c850160208d01611c24565b6211179f60e91b607c91840191820152885161240181607f840160208d01611c24565b612410607f828401018a611f3b565b91505061242181613c6760f01b9052565b6124dc6124d661212361249b61201461243d600287018d611f3b565b7f3e3c706f6c79676f6e20706f696e74733d22342c3320342c32372031302c323181527f2031332c32382031362c32362e352031332c31392e352032302c31392e3522206020820152653334b6361e9160d11b604082015260460190565b7f22207374726f6b653d222330303030303022207374726f6b652d77696474683d815268111891179f1e17b39f60b91b602082015260290190565b85611f3b565b651e17b9bb339f60d11b81526006019a9950505050505050505050565b634e487b7160e01b5f52601260045260245ffd5b5f8261251b5761251b6124f9565b500690565b634e487b7160e01b5f52603260045260245ffd5b808202811582820484141761057957610579611ed1565b5f82612559576125596124f9565b50049056fe3c7265637420783d22312220793d2231222077696474683d22333022206865696768743d223330222066696c6c3d226e6f6e6522207374726f6b653d222346324237303522207374726f6b652d77696474683d22312e35222f3e4142434445464748494a4b4c4d4e4f505152535455565758595a6162636465666768696a6b6c6d6e6f707172737475767778797a303132333435363738392b2f3c636972636c652063783d223236222063793d22362220723d22322e35222066696c6c3d2223453534383444222f3e207472616e73666f726d3d227472616e736c6174652833322c3029207363616c65282d312c312922a2646970667358221220235ac868ffeed55e6a2c478dd99c4f4140affeb98024207cfb0ff64b70fc9dfc64736f6c63430008180033"},"claim":{"abi":[{"type":"constructor","inputs":[{"name":"nft_","type":"address","internalType":"address"}],"stateMutability":"nonpayable"},{"type":"function","name":"CLAIM_FEE","inputs":[],"outputs":[{"name":"","type":"uint256","internalType":"uint256"}],"stateMutability":"view"},{"type":"function","name":"MAX_TAKES","inputs":[],"outputs":[{"name":"","type":"uint256","internalType":"uint256"}],"stateMutability":"view"},{"type":"function","name":"SWEEP_DELAY","inputs":[],"outputs":[{"name":"","type":"uint256","internalType":"uint256"}],"stateMutability":"view"},{"type":"function","name":"claim","inputs":[{"name":"tokenId","type":"uint256","internalType":"uint256"}],"outputs":[],"stateMutability":"payable"},{"type":"function","name":"claimAmount","inputs":[{"name":"level","type":"uint8","internalType":"uint8"}],"outputs":[{"name":"","type":"uint256","internalType":"uint256"}],"stateMutability":"pure"},{"type":"function","name":"claimed","inputs":[{"name":"","type":"uint256","internalType":"uint256"}],"outputs":[{"name":"","type":"bool","internalType":"bool"}],"stateMutability":"view"},{"type":"function","name":"deployedAt","inputs":[],"outputs":[{"name":"","type":"uint256","internalType":"uint256"}],"stateMutability":"view"},{"type":"function","name":"levelPool","inputs":[{"name":"level","type":"uint8","internalType":"uint8"}],"outputs":[{"name":"","type":"uint256","internalType":"uint256"}],"stateMutability":"pure"},{"type":"function","name":"nft","inputs":[],"outputs":[{"name":"","type":"address","internalType":"contract IRiferaFirstTake"}],"stateMutability":"view"},{"type":"function","name":"owner","inputs":[],"outputs":[{"name":"","type":"address","internalType":"address"}],"stateMutability":"view"},{"type":"function","name":"renounceOwnership","inputs":[],"outputs":[],"stateMutability":"nonpayable"},{"type":"function","name":"setToken","inputs":[{"name":"token_","type":"address","internalType":"address"}],"outputs":[],"stateMutability":"nonpayable"},{"type":"function","name":"sweepRemaining","inputs":[],"outputs":[],"stateMutability":"nonpayable"},{"type":"function","name":"token","inputs":[],"outputs":[{"name":"","type":"address","internalType":"contract IERC20"}],"stateMutability":"view"},{"type":"function","name":"tokenSet","inputs":[],"outputs":[{"name":"","type":"bool","internalType":"bool"}],"stateMutability":"view"},{"type":"function","name":"transferOwnership","inputs":[{"name":"newOwner","type":"address","internalType":"address"}],"outputs":[],"stateMutability":"nonpayable"},{"type":"function","name":"withdrawFees","inputs":[],"outputs":[],"stateMutability":"nonpayable"},{"type":"event","name":"Claimed","inputs":[{"name":"claimer","type":"address","indexed":true,"internalType":"address"},{"name":"tokenId","type":"uint256","indexed":true,"internalType":"uint256"},{"name":"level","type":"uint8","indexed":false,"internalType":"uint8"},{"name":"amount","type":"uint256","indexed":false,"internalType":"uint256"}],"anonymous":false},{"type":"event","name":"FeesWithdrawn","inputs":[{"name":"to","type":"address","indexed":true,"internalType":"address"},{"name":"amount","type":"uint256","indexed":false,"internalType":"uint256"}],"anonymous":false},{"type":"event","name":"OwnershipTransferred","inputs":[{"name":"previousOwner","type":"address","indexed":true,"internalType":"address"},{"name":"newOwner","type":"address","indexed":true,"internalType":"address"}],"anonymous":false},{"type":"event","name":"RemainingSwept","inputs":[{"name":"to","type":"address","indexed":true,"internalType":"address"},{"name":"amount","type":"uint256","indexed":false,"internalType":"uint256"}],"anonymous":false},{"type":"event","name":"TokenSet","inputs":[{"name":"token","type":"address","indexed":true,"internalType":"address"}],"anonymous":false},{"type":"error","name":"AlreadyClaimed","inputs":[{"name":"tokenId","type":"uint256","internalType":"uint256"}]},{"type":"error","name":"InsufficientPayment","inputs":[{"name":"required","type":"uint256","internalType":"uint256"},{"name":"sent","type":"uint256","internalType":"uint256"}]},{"type":"error","name":"InsufficientPoolBalance","inputs":[{"name":"needed","type":"uint256","internalType":"uint256"},{"name":"available","type":"uint256","internalType":"uint256"}]},{"type":"error","name":"NotTokenOwner","inputs":[{"name":"caller","type":"address","internalType":"address"},{"name":"tokenId","type":"uint256","internalType":"uint256"}]},{"type":"error","name":"OwnableInvalidOwner","inputs":[{"name":"owner","type":"address","internalType":"address"}]},{"type":"error","name":"OwnableUnauthorizedAccount","inputs":[{"name":"account","type":"address","internalType":"address"}]},{"type":"error","name":"ReentrancyGuardReentrantCall","inputs":[]},{"type":"error","name":"SweepTooEarly","inputs":[{"name":"availableAt","type":"uint256","internalType":"uint256"}]},{"type":"error","name":"TokenAlreadySet","inputs":[]},{"type":"error","name":"TokenNotSet","inputs":[]},{"type":"error","name":"TransferFailed","inputs":[]}],"bytecode":"0x60c060405234801561000f575f80fd5b50604051610fcb380380610fcb83398101604081905261002e9161011c565b338061005457604051631e4fbdf760e01b81525f60048201526024015b60405180910390fd5b61005d816100cd565b50600180556001600160a01b0381166100b85760405162461bcd60e51b815260206004820152601360248201527f6e6674206973207a65726f206164647265737300000000000000000000000000604482015260640161004b565b6001600160a01b03166080524260a052610149565b5f80546001600160a01b038381166001600160a01b0319831681178455604051919092169283917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e09190a35050565b5f6020828403121561012c575f80fd5b81516001600160a01b0381168114610142575f80fd5b9392505050565b60805160a051610e456101865f395f81816102c301528181610a0f0152610a4401525f81816101d80152818161056101526106470152610e455ff3fe6080604052600436106100fa575f3560e01c8063842dcb0b11610092578063e41e4fc611610062578063e41e4fc614610299578063eae4c19f146102b2578063f2fde38b146102e5578063fc0c546a14610304578063feb2d8a814610323575f80fd5b8063842dcb0b146102265780638da5cb5b1461023b5780639509876314610257578063dbe7e3bd1461026b575f80fd5b806340624824116100cd5780634062482414610183578063476343ee146101b357806347ccca02146101c7578063715018a614610212575f80fd5b8063144fa6d7146100fe5780631e9c2fd21461011f578063379607f5146101515780633b9a6d3f14610164575b5f80fd5b348015610109575f80fd5b5061011d610118366004610ce8565b61033a565b005b34801561012a575f80fd5b5061013e610139366004610d18565b61040f565b6040519081526020015b60405180910390f35b61011d61015f366004610d33565b6104dd565b34801561016f575f80fd5b5061013e61017e366004610d18565b6108fc565b34801561018e575f80fd5b506002546101a390600160a01b900460ff1681565b6040519015158152602001610148565b3480156101be575f80fd5b5061011d610919565b3480156101d2575f80fd5b506101fa7f000000000000000000000000000000000000000000000000000000000000000081565b6040516001600160a01b039091168152602001610148565b34801561021d575f80fd5b5061011d6109ea565b348015610231575f80fd5b5061013e611dc481565b348015610246575f80fd5b505f546001600160a01b03166101fa565b348015610262575f80fd5b5061011d6109fd565b348015610276575f80fd5b506101a3610285366004610d33565b60036020525f908152604090205460ff1681565b3480156102a4575f80fd5b5061013e65befe6f67200081565b3480156102bd575f80fd5b5061013e7f000000000000000000000000000000000000000000000000000000000000000081565b3480156102f0575f80fd5b5061011d6102ff366004610ce8565b610bf5565b34801561030f575f80fd5b506002546101fa906001600160a01b031681565b34801561032e575f80fd5b5061013e6301e1338081565b610342610c2f565b600254600160a01b900460ff161561036d576040516371168e4f60e11b815260040160405180910390fd5b6001600160a01b0381166103c05760405162461bcd60e51b8152602060048201526015602482015274746f6b656e206973207a65726f206164647265737360581b60448201526064015b60405180910390fd5b600280546001600160a81b0319166001600160a01b038316908117600160a01b179091556040517fa07c91c183e42229e705a9795a1c06d76528b673788b849597364528c96eefb7905f90a250565b5f8160ff1660010361042d57506acecb8f27f4200f3a000000919050565b8160ff1660020361044b57506b019d971e4fe8401e74000000919050565b8160ff1660030361046957506b033b2e3c9fd0803ce8000000919050565b8160ff1660040361048757506b04d8c55aefb8c05b5c000000919050565b8160ff166005036104a557506b05a790ea17ace06a96000000919050565b60405162461bcd60e51b815260206004820152600d60248201526c1a5b9d985b1a59081b195d995b609a1b60448201526064016103b7565b6104e5610c5b565b600254600160a01b900460ff1661050f57604051634b62f01360e01b815260040160405180910390fd5b5f8181526003602052604090205460ff16156105415760405163598b3dfd60e11b8152600481018290526024016103b7565b6040516331a9108f60e11b81526004810182905233906001600160a01b037f00000000000000000000000000000000000000000000000000000000000000001690636352211e90602401602060405180830381865afa1580156105a6573d5f803e3d5ffd5b505050506040513d601f19601f820116820180604052508101906105ca9190610d4a565b6001600160a01b0316146105fa57604051632c52f11160e11b8152336004820152602481018290526044016103b7565b65befe6f67200034101561062f5760405163b99e2ab760e01b815265befe6f67200060048201523460248201526044016103b7565b6040516336af181960e11b8152600481018290525f907f00000000000000000000000000000000000000000000000000000000000000006001600160a01b031690636d5e303290602401602060405180830381865afa158015610694573d5f803e3d5ffd5b505050506040513d601f19601f820116820180604052508101906106b89190610d65565b90505f6106c4826108fc565b6002546040516370a0823160e01b81523060048201529192505f916001600160a01b03909116906370a0823190602401602060405180830381865afa15801561070f573d5f803e3d5ffd5b505050506040513d601f19601f820116820180604052508101906107339190610d80565b9050818110156107605760405163ce9514f960e01b815260048101839052602481018290526044016103b7565b5f84815260036020908152604091829020805460ff19166001179055815160ff86168152908101849052859133917f0b83b3db4d90f27171b4e1b8c436b983e22e21beb969c49d89762494fcbf4e0e910160405180910390a365befe6f67200034111561085a575f336107d965befe6f67200034610dab565b6040515f81818185875af1925050503d805f8114610812576040519150601f19603f3d011682016040523d82523d5f602084013e610817565b606091505b50509050806108585760405162461bcd60e51b815260206004820152600d60248201526c1c99599d5b990819985a5b1959609a1b60448201526064016103b7565b505b60025460405163a9059cbb60e01b8152336004820152602481018490525f916001600160a01b03169063a9059cbb906044016020604051808303815f875af11580156108a8573d5f803e3d5ffd5b505050506040513d601f19601f820116820180604052508101906108cc9190610dbe565b9050806108ec576040516312171d8360e31b815260040160405180910390fd5b505050506108f960018055565b50565b5f611dc46109098361040f565b6109139190610ddd565b92915050565b610921610c2f565b476109335f546001600160a01b031690565b6001600160a01b03167fc0819c13be868895eb93e40eaceb96de976442fa1d404e5c55f14bb65a8c489a8260405161096d91815260200190565b60405180910390a25f80546040516001600160a01b039091169083908381818185875af1925050503d805f81146109bf576040519150601f19603f3d011682016040523d82523d5f602084013e6109c4565b606091505b50509050806109e6576040516312171d8360e31b815260040160405180910390fd5b5050565b6109f2610c2f565b6109fb5f610c85565b565b610a05610c2f565b610a336301e133807f0000000000000000000000000000000000000000000000000000000000000000610dfc565b421015610a8457610a686301e133807f0000000000000000000000000000000000000000000000000000000000000000610dfc565b60405163220b1bab60e11b81526004016103b791815260200190565b6002546040516370a0823160e01b81523060048201525f916001600160a01b0316906370a0823190602401602060405180830381865afa158015610aca573d5f803e3d5ffd5b505050506040513d601f19601f82011682018060405250810190610aee9190610d80565b9050610b015f546001600160a01b031690565b6001600160a01b03167f6cb726b3900866b8eb238aac4a516c7ae632ce07d3ffaaee634c26b9b237145682604051610b3b91815260200190565b60405180910390a26002545f906001600160a01b031663a9059cbb610b675f546001600160a01b031690565b6040516001600160e01b031960e084901b1681526001600160a01b039091166004820152602481018590526044016020604051808303815f875af1158015610bb1573d5f803e3d5ffd5b505050506040513d601f19601f82011682018060405250810190610bd59190610dbe565b9050806109e6576040516312171d8360e31b815260040160405180910390fd5b610bfd610c2f565b6001600160a01b038116610c2657604051631e4fbdf760e01b81525f60048201526024016103b7565b6108f981610c85565b5f546001600160a01b031633146109fb5760405163118cdaa760e01b81523360048201526024016103b7565b600260015403610c7e57604051633ee5aeb560e01b815260040160405180910390fd5b6002600155565b5f80546001600160a01b038381166001600160a01b0319831681178455604051919092169283917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e09190a35050565b6001600160a01b03811681146108f9575f80fd5b5f60208284031215610cf8575f80fd5b8135610d0381610cd4565b9392505050565b60ff811681146108f9575f80fd5b5f60208284031215610d28575f80fd5b8135610d0381610d0a565b5f60208284031215610d43575f80fd5b5035919050565b5f60208284031215610d5a575f80fd5b8151610d0381610cd4565b5f60208284031215610d75575f80fd5b8151610d0381610d0a565b5f60208284031215610d90575f80fd5b5051919050565b634e487b7160e01b5f52601160045260245ffd5b8181038181111561091357610913610d97565b5f60208284031215610dce575f80fd5b81518015158114610d03575f80fd5b5f82610df757634e487b7160e01b5f52601260045260245ffd5b500490565b8082018082111561091357610913610d9756fea2646970667358221220bf96b329fd117fa225ad1dabad43a93abdc10ba7f4d97ce32a023b277b27512f64736f6c63430008180033"},"token":{"abi":[{"type":"constructor","inputs":[{"name":"claimContract","type":"address","internalType":"address"},{"name":"lpLocker","type":"address","internalType":"address"},{"name":"owner_","type":"address","internalType":"address"}],"stateMutability":"nonpayable"},{"type":"function","name":"CLAIM_SHARE","inputs":[],"outputs":[{"name":"","type":"uint256","internalType":"uint256"}],"stateMutability":"view"},{"type":"function","name":"LP_SHARE","inputs":[],"outputs":[{"name":"","type":"uint256","internalType":"uint256"}],"stateMutability":"view"},{"type":"function","name":"OWNER_SHARE","inputs":[],"outputs":[{"name":"","type":"uint256","internalType":"uint256"}],"stateMutability":"view"},{"type":"function","name":"TOTAL_SUPPLY","inputs":[],"outputs":[{"name":"","type":"uint256","internalType":"uint256"}],"stateMutability":"view"},{"type":"function","name":"allowance","inputs":[{"name":"owner","type":"address","internalType":"address"},{"name":"spender","type":"address","internalType":"address"}],"outputs":[{"name":"","type":"uint256","internalType":"uint256"}],"stateMutability":"view"},{"type":"function","name":"approve","inputs":[{"name":"spender","type":"address","internalType":"address"},{"name":"value","type":"uint256","internalType":"uint256"}],"outputs":[{"name":"","type":"bool","internalType":"bool"}],"stateMutability":"nonpayable"},{"type":"function","name":"balanceOf","inputs":[{"name":"account","type":"address","internalType":"address"}],"outputs":[{"name":"","type":"uint256","internalType":"uint256"}],"stateMutability":"view"},{"type":"function","name":"decimals","inputs":[],"outputs":[{"name":"","type":"uint8","internalType":"uint8"}],"stateMutability":"view"},{"type":"function","name":"name","inputs":[],"outputs":[{"name":"","type":"string","internalType":"string"}],"stateMutability":"view"},{"type":"function","name":"symbol","inputs":[],"outputs":[{"name":"","type":"string","internalType":"string"}],"stateMutability":"view"},{"type":"function","name":"totalSupply","inputs":[],"outputs":[{"name":"","type":"uint256","internalType":"uint256"}],"stateMutability":"view"},{"type":"function","name":"transfer","inputs":[{"name":"to","type":"address","internalType":"address"},{"name":"value","type":"uint256","internalType":"uint256"}],"outputs":[{"name":"","type":"bool","internalType":"bool"}],"stateMutability":"nonpayable"},{"type":"function","name":"transferFrom","inputs":[{"name":"from","type":"address","internalType":"address"},{"name":"to","type":"address","internalType":"address"},{"name":"value","type":"uint256","internalType":"uint256"}],"outputs":[{"name":"","type":"bool","internalType":"bool"}],"stateMutability":"nonpayable"},{"type":"event","name":"Approval","inputs":[{"name":"owner","type":"address","indexed":true,"internalType":"address"},{"name":"spender","type":"address","indexed":true,"internalType":"address"},{"name":"value","type":"uint256","indexed":false,"internalType":"uint256"}],"anonymous":false},{"type":"event","name":"Transfer","inputs":[{"name":"from","type":"address","indexed":true,"internalType":"address"},{"name":"to","type":"address","indexed":true,"internalType":"address"},{"name":"value","type":"uint256","indexed":false,"internalType":"uint256"}],"anonymous":false},{"type":"error","name":"ERC20InsufficientAllowance","inputs":[{"name":"spender","type":"address","internalType":"address"},{"name":"allowance","type":"uint256","internalType":"uint256"},{"name":"needed","type":"uint256","internalType":"uint256"}]},{"type":"error","name":"ERC20InsufficientBalance","inputs":[{"name":"sender","type":"address","internalType":"address"},{"name":"balance","type":"uint256","internalType":"uint256"},{"name":"needed","type":"uint256","internalType":"uint256"}]},{"type":"error","name":"ERC20InvalidApprover","inputs":[{"name":"approver","type":"address","internalType":"address"}]},{"type":"error","name":"ERC20InvalidReceiver","inputs":[{"name":"receiver","type":"address","internalType":"address"}]},{"type":"error","name":"ERC20InvalidSender","inputs":[{"name":"sender","type":"address","internalType":"address"}]},{"type":"error","name":"ERC20InvalidSpender","inputs":[{"name":"spender","type":"address","internalType":"address"}]}],"bytecode":"0x608060405234801562000010575f80fd5b5060405162000cde38038062000cde833981016040819052620000339162000378565b6040518060400160405280600681526020016521bab939b7b960d11b8152506040518060400160405280600681526020016521aaa929a7a960d11b81525081600390816200008291906200045d565b5060046200009182826200045d565b5050506001600160a01b038316620000f05760405162461bcd60e51b815260206004820152601560248201527f636c61696d206973207a65726f2061646472657373000000000000000000000060448201526064015b60405180910390fd5b6001600160a01b038216620001485760405162461bcd60e51b815260206004820152601960248201527f6c70206c6f636b6572206973207a65726f2061646472657373000000000000006044820152606401620000e7565b6001600160a01b038116620001a05760405162461bcd60e51b815260206004820152601560248201527f6f776e6572206973207a65726f206164647265737300000000000000000000006044820152606401620000e7565b620001b8836b1027e72f1f12813088000000620001f1565b620001d0826b0e8a5010cf2a411214000000620001f1565b620001e8816b019d971e4fe8401e74000000620001f1565b5050506200054f565b6001600160a01b0382166200021c5760405163ec442f0560e01b81525f6004820152602401620000e7565b620002295f83836200022d565b5050565b6001600160a01b0383166200025b578060025f8282546200024f919062000529565b90915550620002cd9050565b6001600160a01b0383165f9081526020819052604090205481811015620002af5760405163391434e360e21b81526001600160a01b03851660048201526024810182905260448101839052606401620000e7565b6001600160a01b0384165f9081526020819052604090209082900390555b6001600160a01b038216620002eb5760028054829003905562000309565b6001600160a01b0382165f9081526020819052604090208054820190555b816001600160a01b0316836001600160a01b03167fddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef836040516200034f91815260200190565b60405180910390a3505050565b80516001600160a01b038116811462000373575f80fd5b919050565b5f805f606084860312156200038b575f80fd5b62000396846200035c565b9250620003a6602085016200035c565b9150620003b6604085016200035c565b90509250925092565b634e487b7160e01b5f52604160045260245ffd5b600181811c90821680620003e857607f821691505b6020821081036200040757634e487b7160e01b5f52602260045260245ffd5b50919050565b601f8211156200045857805f5260205f20601f840160051c81016020851015620004345750805b601f840160051c820191505b8181101562000455575f815560010162000440565b50505b505050565b81516001600160401b03811115620004795762000479620003bf565b62000491816200048a8454620003d3565b846200040d565b602080601f831160018114620004c7575f8415620004af5750858301515b5f19600386901b1c1916600185901b17855562000521565b5f85815260208120601f198616915b82811015620004f757888601518255948401946001909101908401620004d6565b50858210156200051557878501515f19600388901b60f8161c191681555b505060018460011b0185555b505050505050565b808201808211156200054957634e487b7160e01b5f52601160045260245ffd5b92915050565b610781806200055d5f395ff3fe608060405234801561000f575f80fd5b50600436106100cb575f3560e01c80636a1c6e781161008857806395d89b411161006357806395d89b41146101a5578063a9059cbb146101ad578063d387381e146101c0578063dd62ed3e146101d3575f80fd5b80636a1c6e781461015757806370a082311461016a578063902d55a514610192575f80fd5b806306fdde03146100cf578063095ea7b3146100ed57806318160ddd1461011057806323b872dd14610122578063313ce567146101355780635f8495ad14610144575b5f80fd5b6100d761020b565b6040516100e491906105db565b60405180910390f35b6101006100fb366004610642565b61029b565b60405190151581526020016100e4565b6002545b6040519081526020016100e4565b61010061013036600461066a565b6102b4565b604051601281526020016100e4565b6101146b1027e72f1f1281308800000081565b6101146b019d971e4fe8401e7400000081565b6101146101783660046106a3565b6001600160a01b03165f9081526020819052604090205490565b6101146b204fce5e3e2502611000000081565b6100d76102d7565b6101006101bb366004610642565b6102e6565b6101146b0e8a5010cf2a41121400000081565b6101146101e13660046106c3565b6001600160a01b039182165f90815260016020908152604080832093909416825291909152205490565b60606003805461021a906106f4565b80601f0160208091040260200160405190810160405280929190818152602001828054610246906106f4565b80156102915780601f1061026857610100808354040283529160200191610291565b820191905f5260205f20905b81548152906001019060200180831161027457829003601f168201915b5050505050905090565b5f336102a88185856102f3565b60019150505b92915050565b5f336102c1858285610305565b6102cc858585610386565b506001949350505050565b60606004805461021a906106f4565b5f336102a8818585610386565b61030083838360016103e3565b505050565b6001600160a01b038381165f908152600160209081526040808320938616835292905220545f19811015610380578181101561037257604051637dc7a0d960e11b81526001600160a01b038416600482015260248101829052604481018390526064015b60405180910390fd5b61038084848484035f6103e3565b50505050565b6001600160a01b0383166103af57604051634b637e8f60e11b81525f6004820152602401610369565b6001600160a01b0382166103d85760405163ec442f0560e01b81525f6004820152602401610369565b6103008383836104b5565b6001600160a01b03841661040c5760405163e602df0560e01b81525f6004820152602401610369565b6001600160a01b03831661043557604051634a1406b160e11b81525f6004820152602401610369565b6001600160a01b038085165f908152600160209081526040808320938716835292905220829055801561038057826001600160a01b0316846001600160a01b03167f8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925846040516104a791815260200190565b60405180910390a350505050565b6001600160a01b0383166104df578060025f8282546104d4919061072c565b9091555061054f9050565b6001600160a01b0383165f90815260208190526040902054818110156105315760405163391434e360e21b81526001600160a01b03851660048201526024810182905260448101839052606401610369565b6001600160a01b0384165f9081526020819052604090209082900390555b6001600160a01b03821661056b57600280548290039055610589565b6001600160a01b0382165f9081526020819052604090208054820190555b816001600160a01b0316836001600160a01b03167fddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef836040516105ce91815260200190565b60405180910390a3505050565b5f602080835283518060208501525f5b81811015610607578581018301518582016040015282016105eb565b505f604082860101526040601f19601f8301168501019250505092915050565b80356001600160a01b038116811461063d575f80fd5b919050565b5f8060408385031215610653575f80fd5b61065c83610627565b946020939093013593505050565b5f805f6060848603121561067c575f80fd5b61068584610627565b925061069360208501610627565b9150604084013590509250925092565b5f602082840312156106b3575f80fd5b6106bc82610627565b9392505050565b5f80604083850312156106d4575f80fd5b6106dd83610627565b91506106eb60208401610627565b90509250929050565b600181811c9082168061070857607f821691505b60208210810361072657634e487b7160e01b5f52602260045260245ffd5b50919050565b808201808211156102ae57634e487b7160e01b5f52601160045260245ffdfea2646970667358221220733a992ba1a3a911d27671422d0e88e2f7cdebbe421f693953ca7d34f59c961864736f6c63430008180033"}};
+</script>
+<script>
+(function(){
+  "use strict";
+
+  var NETWORKS = {
+    56: {
+      name: "BNB Chain mainnet", chainId: 56,
+      hex: "0x38",
+      params: { chainId: "0x38", chainName: "BNB Smart Chain", nativeCurrency: { name: "BNB", symbol: "BNB", decimals: 18 }, rpcUrls: ["https://bsc-dataseed.binance.org/"], blockExplorerUrls: ["https://bscscan.com"] },
+      explorer: "https://bscscan.com"
+    },
+    97: {
+      name: "BSC testnet", chainId: 97,
+      hex: "0x61",
+      params: { chainId: "0x61", chainName: "BSC Testnet", nativeCurrency: { name: "tBNB", symbol: "tBNB", decimals: 18 }, rpcUrls: ["https://data-seed-prebsc-1-s1.binance.org:8545/"], blockExplorerUrls: ["https://testnet.bscscan.com"] },
+      explorer: "https://testnet.bscscan.com"
+    }
+  };
+  var AGENT_ID_MAINNET = "0x60B9262456dE011F7d15a54CdD8c48bAaa8B022F";
+
+  var state = {
+    network: 56,
+    provider: null,
+    signer: null,
+    account: null,
+    nft: null, claim: null, token: null,
+    tx: { nft: null, claim: null, token: null, setToken: null },
+    lpLocker: null,
+    tokenOwner: null,
+    mintOpen: null,
+    totalMinted: null,
+    tokenSet: null
+  };
+
+  function $(id){ return document.getElementById(id); }
+  function short(a){ return a ? a.slice(0,6) + "…" + a.slice(-4) : "—"; }
+
+  /* ── Log ── */
+  var logEl = $("log");
+  function stamp(){
+    var d = new Date();
+    function p(n){ return (n < 10 ? "0" : "") + n; }
+    return p(d.getHours()) + ":" + p(d.getMinutes()) + ":" + p(d.getSeconds());
+  }
+  function log(msg, cls){
+    var line = document.createElement("div");
+    if (cls) line.className = cls;
+    line.textContent = "[" + stamp() + "] " + msg;
+    logEl.appendChild(line);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+  function errText(e){
+    if (!e) return "Unknown error.";
+    if (e.code === "ACTION_REJECTED" || e.code === 4001) return "Rejected in wallet — nothing was sent.";
+    var m = e.shortMessage || e.reason || e.message || String(e);
+    return m.length > 300 ? m.slice(0, 300) + "…" : m;
+  }
+
+  /* ── Summary ── */
+  function updateSummary(){
+    var net = NETWORKS[state.network];
+    function v(x){ return x ? x : "—"; }
+    var lines = [
+      "RIFERA DEPLOYMENT SUMMARY",
+      "Network: " + net.name + " (chain " + state.network + ")",
+      "Deployer / owner wallet: " + v(state.account),
+      "",
+      "RiferaFirstTake (NFT): " + v(state.nft),
+      state.tx.nft ? "  deploy tx: " + state.tx.nft : null,
+      "CursorClaim: " + v(state.claim),
+      state.tx.claim ? "  deploy tx: " + state.tx.claim : null,
+      "CursorToken ($CURSOR): " + v(state.token),
+      state.tx.token ? "  deploy tx: " + state.tx.token : null,
+      "",
+      "Agent ID registry: " + $("in-agentid").value.trim(),
+      "LP locker (45%): " + v(state.lpLocker || ($("in-lplocker").value.trim() || null)),
+      "Token owner share (5%): " + v(state.tokenOwner || ($("in-token-owner").value.trim() || null)),
+      "Claim wired (setToken): " + (state.tokenSet === null ? "—" : (state.tokenSet ? "yes" : "NO — run step 05")),
+      state.tx.setToken ? "  setToken tx: " + state.tx.setToken : null,
+      "Mint open: " + (state.mintOpen === null ? "—" : (state.mintOpen ? "OPEN" : "CLOSED (default — open in step 06 when ready)")),
+      "Total minted: " + (state.totalMinted === null ? "—" : state.totalMinted + " / 7,620"),
+      "",
+      "Verify on Sourcify (full match) — run in the rifera-contracts project:",
+      "AGENT_ID=" + ($("in-agentid").value.trim() || "0x…") +
+        " LP_LOCKER=" + (state.lpLocker || $("in-lplocker").value.trim() || "0x…") +
+        " OWNER=" + (state.tokenOwner || $("in-token-owner").value.trim() || "0x…"),
+      "./verify.sh " + (state.nft || "<NFT>") + " " + (state.claim || "<CLAIM>") + " " + (state.token || "<TOKEN>") + " " + state.network
+    ];
+    $("summary").value = lines.filter(function(l){ return l !== null; }).join("\n");
+  }
+
+  /* ── Button states ── */
+  function refreshButtons(){
+    var connected = !!state.signer;
+    $("btn-deploy-nft").disabled = !connected;
+    $("btn-deploy-claim").disabled = !(connected && state.nft);
+    $("btn-deploy-token").disabled = !(connected && state.claim);
+    $("btn-settoken").disabled = !(connected && state.claim && state.token && state.tokenSet === false);
+    $("btn-refresh-wire").disabled = !(connected && state.claim);
+    var nftReady = connected && state.nft;
+    $("btn-mint-open").disabled = !(nftReady && state.mintOpen === false);
+    $("btn-mint-close").disabled = !(nftReady && state.mintOpen === true);
+    $("btn-refresh-mint").disabled = !nftReady;
+    $("btn-wd-nft").disabled = !nftReady;
+    $("btn-wd-claim").disabled = !(connected && state.claim);
+    $("btn-refresh-wd").disabled = !(connected && (state.nft || state.claim));
+  }
+
+  function setPill(id, text, cls){
+    var el = $(id);
+    el.textContent = text;
+    el.className = "pill" + (cls ? " " + cls : "");
+  }
+
+  function showAddr(outId, label, addr){
+    var el = $(outId);
+    var ex = NETWORKS[state.network].explorer;
+    el.innerHTML = "";
+    var b = document.createElement("b"); b.textContent = label + ": ";
+    var a = document.createElement("a");
+    a.href = ex + "/address/" + addr; a.target = "_blank"; a.rel = "noopener";
+    a.textContent = addr;
+    el.appendChild(b); el.appendChild(a);
+    el.classList.add("show");
+  }
+
+  /* ── Wallet / network ── */
+  function setNetwork(id){
+    state.network = id;
+    $("net-mainnet").setAttribute("aria-pressed", id === 56 ? "true" : "false");
+    $("net-testnet").setAttribute("aria-pressed", id === 97 ? "true" : "false");
+    if (id === 97 && $("in-agentid").value.trim() === AGENT_ID_MAINNET){
+      log("Testnet selected: replace the Agent ID registry in step 02 with your mock Agent ID address — the mainnet registry does not exist on testnet.", "err");
+    }
+    updateSummary();
+  }
+  $("net-mainnet").addEventListener("click", function(){ setNetwork(56); });
+  $("net-testnet").addEventListener("click", function(){ setNetwork(97); });
+
+  async function ensureChain(){
+    var net = NETWORKS[state.network];
+    var current = await window.ethereum.request({ method: "eth_chainId" });
+    if (current && current.toLowerCase() === net.hex) return;
+    log("Switching wallet to " + net.name + "…");
+    try {
+      await window.ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: net.hex }] });
+    } catch (e) {
+      if (e && e.code === 4902) {
+        await window.ethereum.request({ method: "wallet_addEthereumChain", params: [net.params] });
+      } else { throw e; }
+    }
+  }
+
+  $("btn-connect").addEventListener("click", async function(){
+    try {
+      if (typeof window.ethereum === "undefined") {
+        log("No wallet found. Open this page in a browser with MetaMask (or another EVM wallet) installed.", "err");
+        return;
+      }
+      if (typeof ethers === "undefined") {
+        log("The ethers library failed to load — check your connection and reload the page.", "err");
+        return;
+      }
+      await ensureChain();
+      state.provider = new ethers.BrowserProvider(window.ethereum);
+      await state.provider.send("eth_requestAccounts", []);
+      state.signer = await state.provider.getSigner();
+      state.account = await state.signer.getAddress();
+      var bal = await state.provider.getBalance(state.account);
+      $("connect-status").innerHTML = "Connected: <b>" + state.account + "</b><br>Network: <b>" +
+        NETWORKS[state.network].name + "</b> · Balance: <b>" + ethers.formatEther(bal) + " BNB</b>";
+      setPill("pill-connect", "Connected · " + short(state.account), "done");
+      $("btn-connect").textContent = "Reconnect";
+      if (!$("in-token-owner").value.trim()) $("in-token-owner").value = state.account;
+      log("Wallet connected: " + state.account + " on " + NETWORKS[state.network].name + ".", "ok");
+      refreshButtons(); updateSummary();
+      refreshAllStatus();
+    } catch (e) {
+      log("Connect failed: " + errText(e), "err");
+    }
+  });
+
+  if (typeof window.ethereum !== "undefined" && window.ethereum.on) {
+    window.ethereum.on("accountsChanged", function(){
+      log("Wallet account changed — reconnect to continue.", "err");
+      state.signer = null; state.account = null;
+      setPill("pill-connect", "Not connected");
+      $("connect-status").textContent = "Account changed. Reconnect the owner wallet.";
+      refreshButtons(); updateSummary();
+    });
+    window.ethereum.on("chainChanged", function(){ window.location.reload(); });
+  }
+
+  /* ── Deploy helper ── */
+  async function deploy(key, art, args, label){
+    var factory = new ethers.ContractFactory(art.abi, art.bytecode, state.signer);
+    log("Deploying " + label + " — confirm in your wallet…");
+    var contract = await factory.deploy.apply(factory, args);
+    var tx = contract.deploymentTransaction();
+    if (tx) state.tx[key] = tx.hash;
+    log(label + " tx sent: " + (tx ? tx.hash : "?") + " — waiting for confirmation…");
+    await contract.waitForDeployment();
+    var addr = await contract.getAddress();
+    log(label + " deployed at " + addr, "ok");
+    return addr;
+  }
+  function validAddr(v){ return typeof ethers !== "undefined" && ethers.isAddress(v); }
+
+  /* ── 02 NFT ── */
+  $("btn-deploy-nft").addEventListener("click", async function(){
+    var agentId = $("in-agentid").value.trim();
+    if (!validAddr(agentId)) { log("Step 02: the Agent ID registry is not a valid address.", "err"); return; }
+    if (state.network === 56 && agentId.toLowerCase() !== AGENT_ID_MAINNET.toLowerCase()) {
+      log("Step 02: warning — on mainnet the Agent ID registry should be " + AGENT_ID_MAINNET + ". Deploying with a different registry means the mint gate checks that contract instead.", "err");
+    }
+    try {
+      $("btn-deploy-nft").disabled = true;
+      state.nft = await deploy("nft", ART.nft, [agentId], "RiferaFirstTake");
+      $("in-claim-nft").value = state.nft;
+      showAddr("out-nft", "RiferaFirstTake", state.nft);
+      setPill("pill-nft", "Deployed", "done");
+      log("Mint is CLOSED on the new NFT. Nobody can mint until step 06.", "ok");
+      refreshButtons(); updateSummary(); refreshMintStatus();
+    } catch (e) {
+      log("NFT deploy failed: " + errText(e), "err");
+      refreshButtons();
+    }
+  });
+  $("btn-load-nft").addEventListener("click", async function(){
+    var a = $("in-load-nft").value.trim();
+    if (!validAddr(a)) { log("Load NFT: not a valid address.", "err"); return; }
+    state.nft = a;
+    $("in-claim-nft").value = a;
+    showAddr("out-nft", "RiferaFirstTake", a);
+    setPill("pill-nft", "Loaded", "done");
+    log("NFT loaded: " + a, "ok");
+    refreshButtons(); updateSummary(); refreshMintStatus(); refreshBalances();
+  });
+
+  /* ── 03 Claim ── */
+  $("btn-deploy-claim").addEventListener("click", async function(){
+    var nftAddr = $("in-claim-nft").value.trim();
+    if (!validAddr(nftAddr)) { log("Step 03: the NFT address is not valid.", "err"); return; }
+    try {
+      $("btn-deploy-claim").disabled = true;
+      state.claim = await deploy("claim", ART.claim, [nftAddr], "CursorClaim");
+      $("in-token-claim").value = state.claim;
+      showAddr("out-claim", "CursorClaim", state.claim);
+      setPill("pill-claim", "Deployed", "done");
+      refreshButtons(); updateSummary(); refreshWireStatus(); refreshBalances();
+    } catch (e) {
+      log("Claim deploy failed: " + errText(e), "err");
+      refreshButtons();
+    }
+  });
+  $("btn-load-claim").addEventListener("click", async function(){
+    var a = $("in-load-claim").value.trim();
+    if (!validAddr(a)) { log("Load Claim: not a valid address.", "err"); return; }
+    state.claim = a;
+    $("in-token-claim").value = a;
+    showAddr("out-claim", "CursorClaim", a);
+    setPill("pill-claim", "Loaded", "done");
+    log("Claim loaded: " + a, "ok");
+    refreshButtons(); updateSummary(); refreshWireStatus(); refreshBalances();
+  });
+
+  /* ── 04 Token ── */
+  $("btn-deploy-token").addEventListener("click", async function(){
+    var claimAddr = $("in-token-claim").value.trim();
+    var lp = $("in-lplocker").value.trim();
+    var owner = $("in-token-owner").value.trim();
+    if (!validAddr(claimAddr)) { log("Step 04: the Claim address is not valid.", "err"); return; }
+    if (!validAddr(lp)) { log("Step 04: the LP locker is not a valid address. The 45% goes there at deploy — do not guess this address.", "err"); return; }
+    if (!validAddr(owner)) { log("Step 04: the owner address is not valid.", "err"); return; }
+    if (lp.toLowerCase() === claimAddr.toLowerCase() || lp.toLowerCase() === owner.toLowerCase()) {
+      log("Step 04: the LP locker must be its own address — not the Claim contract and not the owner wallet.", "err"); return;
+    }
+    try {
+      $("btn-deploy-token").disabled = true;
+      state.token = await deploy("token", ART.token, [claimAddr, lp, owner], "CursorToken ($CURSOR)");
+      state.lpLocker = lp; state.tokenOwner = owner;
+      showAddr("out-token", "CursorToken", state.token);
+      setPill("pill-token", "Deployed", "done");
+      log("Split sent: 5B to Claim, 4.5B to LP locker, 500M to owner.", "ok");
+      refreshButtons(); updateSummary(); refreshWireStatus();
+    } catch (e) {
+      log("Token deploy failed: " + errText(e), "err");
+      refreshButtons();
+    }
+  });
+  $("btn-load-token").addEventListener("click", async function(){
+    var a = $("in-load-token").value.trim();
+    if (!validAddr(a)) { log("Load Token: not a valid address.", "err"); return; }
+    state.token = a;
+    showAddr("out-token", "CursorToken", a);
+    setPill("pill-token", "Loaded", "done");
+    log("Token loaded: " + a, "ok");
+    refreshButtons(); updateSummary(); refreshWireStatus();
+  });
+
+  /* ── 05 Wire ── */
+  async function refreshWireStatus(){
+    if (!state.claim || !state.provider) return;
+    try {
+      var c = new ethers.Contract(state.claim, ART.claim.abi, state.provider);
+      state.tokenSet = await c.tokenSet();
+      if (state.tokenSet) {
+        var t = await c.token();
+        $("wire-status").innerHTML = "Token wired: <b>" + t + "</b>. Claims are ready (they still need a minted take and open mint is separate).";
+        setPill("pill-wire", "Wired", "done");
+      } else {
+        $("wire-status").innerHTML = "Token <b>not set yet</b> — claims revert until you run setToken.";
+        setPill("pill-wire", "Not wired");
+      }
+    } catch (e) {
+      $("wire-status").textContent = "Could not read Claim status: " + errText(e);
+    }
+    refreshButtons(); updateSummary();
+  }
+  $("btn-refresh-wire").addEventListener("click", refreshWireStatus);
+  $("btn-settoken").addEventListener("click", async function(){
+    try {
+      $("btn-settoken").disabled = true;
+      var c = new ethers.Contract(state.claim, ART.claim.abi, state.signer);
+      log("Calling setToken(" + state.token + ") on CursorClaim — confirm in your wallet…");
+      var tx = await c.setToken(state.token);
+      state.tx.setToken = tx.hash;
+      await tx.wait();
+      log("setToken confirmed: " + tx.hash, "ok");
+      refreshWireStatus();
+    } catch (e) {
+      log("setToken failed: " + errText(e), "err");
+      refreshButtons();
+    }
+  });
+
+  /* ── 06 Mint gate ── */
+  async function refreshMintStatus(){
+    if (!state.nft || !state.provider) return;
+    try {
+      var c = new ethers.Contract(state.nft, ART.nft.abi, state.provider);
+      state.mintOpen = await c.mintOpen();
+      state.totalMinted = Number(await c.totalMinted());
+      $("mint-status").innerHTML = "Mint is <b>" + (state.mintOpen ? "OPEN" : "CLOSED") +
+        "</b> · Total minted: <b>" + state.totalMinted + " / 7,620</b>";
+      setPill("pill-mint", state.mintOpen ? "Mint open" : "Mint closed", state.mintOpen ? "live" : "done");
+    } catch (e) {
+      $("mint-status").textContent = "Could not read NFT status: " + errText(e);
+    }
+    refreshButtons(); updateSummary();
+  }
+  $("btn-refresh-mint").addEventListener("click", refreshMintStatus);
+  async function setMint(open){
+    try {
+      var c = new ethers.Contract(state.nft, ART.nft.abi, state.signer);
+      log("Calling setMintOpen(" + open + ") — confirm in your wallet…");
+      var tx = await c.setMintOpen(open);
+      await tx.wait();
+      log("Mint is now " + (open ? "OPEN" : "CLOSED") + ". Tx: " + tx.hash, "ok");
+      refreshMintStatus();
+    } catch (e) {
+      log("setMintOpen failed: " + errText(e), "err");
+      refreshButtons();
+    }
+  }
+  $("btn-mint-open").addEventListener("click", function(){ setMint(true); });
+  $("btn-mint-close").addEventListener("click", function(){ setMint(false); });
+
+  /* ── 07 Withdraw ── */
+  async function refreshBalances(){
+    if (!state.provider || (!state.nft && !state.claim)) return;
+    try {
+      var parts = [];
+      if (state.nft) {
+        var b1 = await state.provider.getBalance(state.nft);
+        parts.push("NFT balance: <b>" + ethers.formatEther(b1) + " BNB</b>");
+      }
+      if (state.claim) {
+        var b2 = await state.provider.getBalance(state.claim);
+        parts.push("Claim fees: <b>" + ethers.formatEther(b2) + " BNB</b>");
+      }
+      $("wd-status").innerHTML = parts.join(" · ");
+    } catch (e) {
+      $("wd-status").textContent = "Could not read balances: " + errText(e);
+    }
+  }
+  $("btn-refresh-wd").addEventListener("click", refreshBalances);
+  $("btn-wd-nft").addEventListener("click", async function(){
+    try {
+      var c = new ethers.Contract(state.nft, ART.nft.abi, state.signer);
+      log("Withdrawing NFT balance to the owner — confirm in your wallet…");
+      var tx = await c.withdraw();
+      await tx.wait();
+      log("NFT withdraw confirmed: " + tx.hash, "ok");
+      refreshBalances();
+    } catch (e) { log("NFT withdraw failed: " + errText(e), "err"); }
+  });
+  $("btn-wd-claim").addEventListener("click", async function(){
+    try {
+      var c = new ethers.Contract(state.claim, ART.claim.abi, state.signer);
+      log("Withdrawing claim fees to the owner — confirm in your wallet…");
+      var tx = await c.withdrawFees();
+      await tx.wait();
+      log("Claim withdraw confirmed: " + tx.hash, "ok");
+      refreshBalances();
+    } catch (e) { log("Claim withdraw failed: " + errText(e), "err"); }
+  });
+
+  function refreshAllStatus(){
+    if (state.nft) refreshMintStatus();
+    if (state.claim) { refreshWireStatus(); }
+    if (state.nft || state.claim) refreshBalances();
+  }
+
+  /* ── Copy summary ── */
+  $("btn-copy-summary").addEventListener("click", async function(){
+    var ta = $("summary");
+    try {
+      await navigator.clipboard.writeText(ta.value);
+      $("copy-status").textContent = "Copied. Paste it back to Muse.";
+    } catch (e) {
+      ta.select();
+      document.execCommand("copy");
+      $("copy-status").textContent = "Copied. Paste it back to Muse.";
+    }
+  });
+
+  ["in-agentid", "in-lplocker", "in-token-owner"].forEach(function(id){
+    $(id).addEventListener("input", updateSummary);
+  });
+
+  log("Page ready. Nothing has been sent anywhere yet.");
+  log("Reminder: mint starts CLOSED. Deploy in order — 02 NFT, 03 Claim, 04 Token, 05 setToken. Open mint in step 06 only when you are ready.");
+  updateSummary();
+  refreshButtons();
+})();
+</script>
+</body>
+</html>
