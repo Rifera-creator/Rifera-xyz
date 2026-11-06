@@ -15,6 +15,9 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Rifera" />
     <link rel="canonical" href="https://rifera.xyz/" />
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"Product","name":"Rifera First Take","description":"7,620 pixel cursor NFTs on BNB Chain. First mint per wallet is free (gas only). All takes open, no whitelist, no reservation. Mint by chosen take number via mint(uint256 takeId) on contract 0x0Cd348360109dd7f966B94a37Ff9BB0542b07Ec3 (chainId 56). Extra mints 0.002 BNB. Requires a Binance Agent ID (0x60B9262456dE011F7d15a54CdD8c48bAaa8B022F, balanceOf >= 1) in the minting wallet.","offers":{"@type":"Offer","price":"0","priceCurrency":"BNB","availability":"https://schema.org/InStock"}}
+    </script>
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Rifera" />
     <meta property="og:title" content="Rifera NFT - First Take" />
@@ -577,6 +580,47 @@
         font-family:"IBM Plex Mono",monospace;font-size:.95rem;letter-spacing:.03em;
       }
       #gate3 .mint-btn::before{content:"▸ "}
+
+      /* ---------- direct wallet mint (gate 03, next to the agent-prompt path) ---------- */
+      .dmint{margin-top:1.4rem;border:3px solid #2f9e5f;border-radius:var(--radius);background:#010402;overflow:hidden;box-shadow:0 0 30px -12px rgba(46,234,122,.35)}
+      .dmint-head{display:flex;align-items:center;gap:.7rem;flex-wrap:wrap;padding:.65rem 1rem;border-bottom:3px solid #2f9e5f;font-family:"IBM Plex Mono",monospace;font-size:.78rem;color:#8fdca9;letter-spacing:.03em}
+      .dmint-head .th-cmd{color:var(--green);font-weight:600}
+      .dmint-head .th-right{margin-left:auto;color:#5f9c74;letter-spacing:.12em;font-size:.7rem}
+      .dmint-body{padding:1.2rem}
+      .dmint [hidden]{display:none!important}
+      .dmint-lede{margin:0 0 1rem;color:#9adbb2;line-height:1.6;font-size:.95rem}
+      .dmint-lede b{color:#eafff1}
+      .dmint-rows{display:flex;gap:1.4rem;flex-wrap:wrap;font-family:"IBM Plex Mono",monospace;font-size:.78rem;color:#8fdca9;line-height:1.8}
+      .dmint-rows b{color:#eafff1;font-size:1rem}
+      .dmint-rows .ok{color:var(--green)}
+      .dmint-rows .no{color:#ff8fa3}
+      .dmint-note{font-family:"IBM Plex Mono",monospace;font-size:.8rem;line-height:1.65;color:#8fdca9;margin:.7rem 0 0}
+      .dmint-note.warn{color:#ff9eb0}
+      .dmint-btn-row{display:flex;gap:.65rem;flex-wrap:wrap;align-items:center;margin-top:1.05rem}
+      .dmint .btn-claim-big[disabled]{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none}
+      .dmint-status{font-family:"IBM Plex Mono",monospace;font-size:.8rem;line-height:1.65;color:#9adbb2;margin-top:1rem;display:none;border:2px dashed #2f9e5f;border-radius:10px;padding:.9rem 1.05rem}
+      .dmint-status.show{display:block;animation:swapin .35s ease}
+      .dmint-status.err{border-color:#6b2233;color:#ffb9c6}
+      .dmint-status b{color:#eafff1}
+      .dmint-status.err b{color:#ffd7de}
+      .dmint-status a{color:var(--green);text-decoration:underline}
+      @media (prefers-reduced-motion: reduce){.dmint-status.show{animation:none}}
+
+      /* ---------- for AI agents / bots (gate 03) ---------- */
+      .agents{margin-top:1.4rem;border:3px solid var(--green);border-radius:var(--radius);background:#010402;overflow:hidden;box-shadow:0 0 44px -10px rgba(46,234,122,.55)}
+      .agents-head{display:flex;align-items:center;gap:.7rem;flex-wrap:wrap;padding:.65rem 1rem;border-bottom:3px solid var(--green);font-family:"IBM Plex Mono",monospace;font-size:.78rem;color:#8fdca9;letter-spacing:.03em;background:#02140a}
+      .agents-head .th-cmd{color:var(--green);font-weight:600}
+      .agents-head .th-right{margin-left:auto;color:#02140a;background:var(--green);font-weight:700;letter-spacing:.12em;font-size:.7rem;padding:.25rem .55rem;border-radius:4px}
+      .agents-body{padding:1.2rem}
+      .agents-free{font-size:clamp(1.9rem,5.5vw,3rem);font-weight:900;line-height:1.05;letter-spacing:-.01em;margin:0;color:#eafff1}
+      .agents-free .free{color:var(--green);text-shadow:0 0 22px rgba(46,234,122,.55)}
+      .agents-free small{display:block;font-family:"IBM Plex Mono",monospace;font-size:.8rem;font-weight:600;letter-spacing:.06em;color:#9adbb2;margin-top:.5rem}
+      .agents-list{list-style:none;margin:1.1rem 0 0;padding:0;display:flex;flex-direction:column;gap:.55rem;color:#c9ffe0;line-height:1.55;font-size:.95rem}
+      .agents-list li{display:flex;gap:.6rem}
+      .agents-list li::before{content:"▸";color:var(--green);font-weight:700;flex:0 0 auto}
+      .agents-list b{color:#eafff1}
+      .agents-spec{margin:1.1rem 0 0;background:#000;border:1px dashed #2f9e5f;border-radius:10px;padding:.95rem 1.05rem;font-family:"IBM Plex Mono",monospace;font-size:.8rem;line-height:1.75;color:#8ff5ae;white-space:pre-wrap;word-break:break-all}
+      .agents-spec b{color:#eafff1}
 
       /* ---------- upgrade ---------- */
       .up-levels{display:grid;grid-template-columns:repeat(5,1fr);gap:1rem;margin-top:1.4rem}
@@ -1433,7 +1477,7 @@ Reply tx link only.</pre>
         <div class="gate-head">
           <span class="gate-tag">03</span>
           <h2>Mint your take</h2>
-          <p>One board: filled, empty, next. Mint runs through your agent, after your post. <strong>This page never connects a wallet.</strong></p>
+          <p>One board: filled, empty, next. Post first, then mint — <strong>through your agent, or direct with your wallet below.</strong></p>
         </div>
 
         <div class="live-line"><span class="rec-dot" aria-hidden="true"></span> $ mint_board · status · mint open</div>
@@ -1468,6 +1512,50 @@ Reply tx link only.</pre>
             <p>Live on BNB Chain. Mint is open — the address below is the only official one.</p>
             <div class="contract">Rifera First Take · 0x0Cd348360109dd7f966B94a37Ff9BB0542b07Ec3 · BNB Chain · fixed supply of 7,620.</div>
             <p style="margin-top:.9rem">Any other address, anywhere else: not official.</p>
+          </div>
+        </div>
+
+        <div class="dmint">
+          <div class="dmint-head"><span class="win-dots" aria-hidden="true"><i></i><i></i><i></i></span><span>wallet@rifera: ~/direct_mint</span><span class="th-cmd">$ mint --direct</span><span class="th-right">NO AGENT NEEDED</span></div>
+          <div class="dmint-body">
+            <p class="dmint-lede">Or mint <b>right here</b> — no agent, no prompt. Connect your wallet and mint the take picked on the big screen. Same rules: post first, first mint free, extra 0.002 BNB, Agent ID required.</p>
+            <div id="dmDisconnected">
+              <button class="btn-claim-big" type="button" id="dmConnectBtn">Connect Wallet</button>
+              <p class="dmint-note">MetaMask or any browser wallet · BNB Chain · you sign in your wallet — this page never sees your keys.</p>
+            </div>
+            <div id="dmConnected" hidden>
+              <div class="dmint-rows">
+                <span>WALLET<br /><b id="dmWallet">—</b></span>
+                <span>NETWORK<br /><b id="dmNetwork">—</b></span>
+                <span>AGENT ID<br /><b id="dmAgent">Checking…</b></span>
+                <span>TAKE<br /><b id="dmTake">—</b></span>
+                <span>PRICE<br /><b id="dmPrice">—</b></span>
+              </div>
+              <p class="dmint-note warn" id="dmWarn" hidden></p>
+              <div class="dmint-btn-row">
+                <button class="btn-claim-big" type="button" id="dmMintBtn">Mint Take <span id="dmMintTake">0001</span> directly</button>
+                <button class="btn-outline-green" type="button" id="dmSwitchBtn" hidden>Switch to BNB Mainnet</button>
+              </div>
+            </div>
+            <div class="dmint-status" id="dmStatus" aria-live="polite"></div>
+          </div>
+        </div>
+
+        <div class="agents" id="agents">
+          <div class="agents-head"><span class="win-dots" aria-hidden="true"><i></i><i></i><i></i></span><span>agent@rifera: ~/mint</span><span class="th-cmd">$ mint --for-agents</span><span class="th-right">FOR AI AGENTS / BOTS</span></div>
+          <div class="agents-body">
+            <p class="agents-free">First mint per wallet: <span class="free">FREE</span><small>GAS ONLY · 0 BNB · EXTRA MINTS 0.002 BNB</small></p>
+            <ul class="agents-list">
+              <li><span><b>All 7,620 takes open.</b> No whitelist. No reservation. No supply held back — every unminted take can be minted.</span></li>
+              <li><span><b>Mint by take number.</b> Pick any unminted takeId, 1–7,620. One call: <span class="mono">mint(takeId)</span>.</span></li>
+              <li><span><b>Requirement:</b> the minting wallet must hold a Binance Agent ID (balanceOf ≥ 1). Checked on-chain.</span></li>
+            </ul>
+            <pre class="agents-spec">chain: BNB Chain (chainId 56)
+contract: 0x0Cd348360109dd7f966B94a37Ff9BB0542b07Ec3
+function: mint(uint256 takeId) payable
+price: first mint per wallet 0 BNB · extra mints 0.002 BNB
+agentId: 0x60B9262456dE011F7d15a54CdD8c48bAaa8B022F (balanceOf ≥ 1)
+supply: 7,620 · no whitelist · no reservation</pre>
           </div>
         </div>
       </section>
@@ -1759,7 +1847,7 @@ Reply tx link only.</pre>
               <li>First mint per wallet: <b style="color:var(--text)">free</b> — gas only</li>
               <li>Each extra mint: <b style="color:var(--text)">0.002 BNB</b>, no max</li>
               <li>Binance Agent ID required — checked in your wallet</li>
-              <li>Post first, always. This page never connects a wallet</li>
+              <li>Post first, always. Mint by agent prompt — or direct with your wallet in 03</li>
               <li>Contract: 0x0Cd3…07Ec3 — announced here, only here</li>
             </ul>
           </div>
@@ -1834,7 +1922,7 @@ Reply tx link only.</pre>
           <p>Every image is <strong>generated from its take number</strong> by one formula — the same formula on this page and at mint, so the take you pick is the take you get. No image files, no hosting to lose. Every take is one whole, clean arrow cursor; only its color, background, variant, and REC signal differ per number.</p>
 
           <h3>3 · How mint works</h3>
-          <p>Mint is gated by a post: <strong>post first, then mint</strong> — no shortcut. Minting runs through your own agent with a short prompt; this page never connects a wallet. A Binance Agent ID in the wallet is required and checked automatically.</p>
+          <p>Mint is gated by a post: <strong>post first, then mint</strong> — no shortcut. Minting runs through your own agent with a short prompt, or directly from your wallet in the Mint section. A Binance Agent ID in the wallet is required and checked automatically.</p>
           <div class="wp-rows">
             <div class="wp-row"><span>First mint per wallet</span><b>FREE · gas only</b></div>
             <div class="wp-row"><span>Each extra mint</span><b>0.002 BNB</b></div>
@@ -2242,7 +2330,7 @@ Reply tx link only.</pre>
         var elTaken = document.getElementById("statTaken"), elLeft = document.getElementById("statLeft"), elLabel = document.getElementById("takenLabel");
         document.getElementById("statNext").textContent = pad(nextFree);
         document.getElementById("statStatus").textContent = "Mint live";
-        document.getElementById("statStatusSub").textContent = "open now — post first, then mint via your agent";
+        document.getElementById("statStatusSub").textContent = "open now — post first, then mint: agent or wallet";
         function fmt(v){ return Math.round(v).toLocaleString("en-US"); }
         if(reduced){
           elTaken.textContent = fmt(takenCount); elLeft.textContent = fmt(TOTAL-takenCount); elLabel.textContent = fmt(takenCount);
@@ -2356,7 +2444,7 @@ Reply tx link only.</pre>
         }
         function applyStatus(){
           document.getElementById("statStatus").textContent = chainOpen ? "Mint live" : "Mint closed";
-          document.getElementById("statStatusSub").textContent = chainOpen ? "open now — post first, then mint via your agent" : "closed right now — the board still reads live";
+          document.getElementById("statStatusSub").textContent = chainOpen ? "open now — post first, then mint: agent or wallet" : "closed right now — the board still reads live";
           var ll = document.querySelector("#gate3 .live-line");
           if(ll) ll.innerHTML = "<span class='rec-dot' aria-hidden='true'></span> $ mint_board · status · " + (chainOpen ? "mint open" : "mint closed");
         }
@@ -2707,6 +2795,242 @@ Reply tx link only.</pre>
         });
         var mlb = document.getElementById("mintLiveBtn");
         if(mlb){ mlb.addEventListener("click", function(){ document.getElementById("gate2").scrollIntoView({behavior: reduced ? "auto" : "smooth", block:"start"}); }); }
+
+        /* ---------- direct wallet mint ----------
+           The second mint path, next to the agent prompt in 02: the
+           visitor connects an injected wallet (MetaMask & friends) and
+           this page sends mint(takeId) itself, from the visitor's own
+           wallet. takeId is the take picked on the big screen —
+           mintTarget() already falls forward to the next empty take
+           when the picked one is filled. Price is read live from
+           mintsByWallet(wallet): first mint free (gas only), every
+           extra mint 0.002 BNB. The Binance Agent ID balance is read
+           before anything is sent: a wallet without one never gets a
+           transaction, because the contract reverts NoAgentId anyway.
+           Selectors are the verified contract's own: mint(uint256)
+           a0712d68 · mintsByWallet(address) d5353916 ·
+           balanceOf(address) 70a08231 · ownerOf(uint256) 6352211e ·
+           mintOpen() 24bbd049. Errors map to the contract's custom
+           errors: NoAgentId 6189c6d0 · MintClosed 589ed34b ·
+           AlreadyMinted a593dbf8 · InsufficientPayment b99e2ab7. */
+        var AGENT_ADDR = "0x60B9262456dE011F7d15a54CdD8c48bAaa8B022F";
+        var EXTRA_WEI = "0x71afd498d0000"; /* 0.002 BNB, in wei, hex */
+        var dmAccount = null, dmChainOk = false, dmAgentOk = null, dmMints = null, dmBusy = false;
+        var dmDisc = document.getElementById("dmDisconnected");
+        var dmConn = document.getElementById("dmConnected");
+        var dmWalletEl = document.getElementById("dmWallet");
+        var dmNetworkEl = document.getElementById("dmNetwork");
+        var dmAgentEl = document.getElementById("dmAgent");
+        var dmTakeEl = document.getElementById("dmTake");
+        var dmPriceEl = document.getElementById("dmPrice");
+        var dmWarnEl = document.getElementById("dmWarn");
+        var dmMintBtn = document.getElementById("dmMintBtn");
+        var dmMintTakeEl = document.getElementById("dmMintTake");
+        var dmSwitchBtn = document.getElementById("dmSwitchBtn");
+        var dmStatusEl = document.getElementById("dmStatus");
+
+        function dmProvider(){ return window.ethereum ? window.ethereum : null; }
+        function dmAddrWord(a){ return "000000000000000000000000" + a.slice(2).toLowerCase(); }
+        function dmShort(a){ return a.slice(0, 6) + "…" + a.slice(-4); }
+        function dmHexOk(h){ return typeof h === "string" && h.length > 2; }
+        function dmSetStatus(html, isErr){
+          if(!html){ dmStatusEl.className = "dmint-status"; dmStatusEl.innerHTML = ""; return; }
+          dmStatusEl.className = "dmint-status show" + (isErr ? " err" : "");
+          dmStatusEl.innerHTML = html;
+        }
+        function dmCall(to, data){
+          return dmProvider().request({method:"eth_call", params:[{to:to, data:data}, "latest"]});
+        }
+        function dmRender(){
+          var target = mintTarget();
+          if(!dmAccount){
+            dmDisc.hidden = false; dmConn.hidden = true;
+            return;
+          }
+          dmDisc.hidden = true; dmConn.hidden = false;
+          dmWalletEl.textContent = dmShort(dmAccount);
+          dmNetworkEl.innerHTML = dmChainOk ? "<span class='ok'>BNB Mainnet · 56</span>" : "<span class='no'>Wrong network</span>";
+          dmAgentEl.innerHTML = dmAgentOk === null ? "Checking…" : (dmAgentOk ? "<span class='ok'>Yes · in wallet</span>" : "<span class='no'>No Agent ID</span>");
+          dmTakeEl.textContent = pad(target);
+          dmPriceEl.innerHTML = dmMints === null ? "Checking…" : (dmMints === 0 ? "<span class='ok'>FREE · gas only</span>" : "0.002 BNB · + gas");
+          dmMintTakeEl.textContent = pad(target);
+          dmSwitchBtn.hidden = dmChainOk;
+          var warn = "";
+          if(!dmChainOk) warn = "Wrong network — mint runs on BNB Mainnet only. Switch to mint.";
+          else if(!chainOpen) warn = "Mint is closed right now — the button stays off until it opens.";
+          else if(dmAgentOk === false) warn = "No Binance Agent ID in this wallet. The contract will reject this mint — nothing will be sent.";
+          else if(taken[selected]) warn = "Take " + pad(selected) + " is filled — you'll mint the next empty take, " + pad(target) + ".";
+          dmWarnEl.textContent = warn;
+          dmWarnEl.hidden = !warn;
+          dmMintBtn.disabled = dmBusy || !dmChainOk || !chainOpen || dmAgentOk !== true;
+        }
+        function dmReadWallet(){
+          var p = dmProvider();
+          if(!p || !dmAccount) return Promise.resolve();
+          var a = dmAccount;
+          return Promise.all([
+            dmCall(AGENT_ADDR, "0x70a08231" + dmAddrWord(a)).catch(function(){ return null; }),
+            dmCall(NFT_ADDR, "0xd5353916" + dmAddrWord(a)).catch(function(){ return null; })
+          ]).then(function(res){
+            if(dmAccount !== a) return;
+            if(dmHexOk(res[0])) dmAgentOk = parseInt(res[0], 16) >= 1;
+            if(dmHexOk(res[1])) dmMints = parseInt(res[1], 16);
+            dmRender();
+          });
+        }
+        function dmReadChain(){
+          var p = dmProvider();
+          if(!p) return Promise.resolve();
+          return p.request({method:"eth_chainId"}).then(function(id){
+            dmChainOk = (id === "0x38");
+            dmRender();
+          }).catch(function(){});
+        }
+        function dmAdopt(accs){
+          if(accs && accs.length){
+            dmAccount = accs[0]; dmAgentOk = null; dmMints = null;
+            dmRender();
+            dmReadChain(); dmReadWallet();
+          } else {
+            dmAccount = null; dmAgentOk = null; dmMints = null;
+            dmRender();
+          }
+        }
+        function dmConnect(){
+          var p = dmProvider();
+          if(!p){
+            dmSetStatus("<b>No wallet found.</b> Install MetaMask or another BNB Chain wallet in this browser, then tap Connect Wallet again.", true);
+            return;
+          }
+          dmSetStatus("Opening your wallet…");
+          p.request({method:"eth_requestAccounts"}).then(function(accs){
+            dmSetStatus("");
+            dmAdopt(accs);
+          }).catch(function(e){
+            if(e && e.code === 4001) dmSetStatus("<b>Connection cancelled.</b> Nothing was connected — tap Connect Wallet when ready.", true);
+            else dmSetStatus("<b>Could not connect.</b> Unlock your wallet, then try again.", true);
+          });
+        }
+        function dmSwitch(){
+          var p = dmProvider();
+          if(!p) return;
+          p.request({method:"wallet_switchEthereumChain", params:[{chainId:"0x38"}]}).then(function(){
+            dmReadChain();
+          }).catch(function(e){
+            if(e && e.code === 4902){
+              p.request({method:"wallet_addEthereumChain", params:[{chainId:"0x38", chainName:"BNB Chain Mainnet", nativeCurrency:{name:"BNB", symbol:"BNB", decimals:18}, rpcUrls:["https://bsc-dataseed.binance.org"], blockExplorerUrls:["https://bscscan.com"]}]})
+                .then(function(){ dmReadChain(); })
+                .catch(function(){ dmReadChain(); });
+            }
+            else if(e && e.code === 4001) dmSetStatus("<b>Switch cancelled.</b> Mint needs BNB Mainnet — tap Switch when ready.", true);
+            else dmSetStatus("<b>Could not switch.</b> Set your wallet to BNB Mainnet (chain 56), then try again.", true);
+          });
+        }
+        function dmErrorText(e){
+          var hay = "";
+          try { hay = JSON.stringify(e) || ""; } catch(err) { hay = ""; }
+          hay += " " + ((e && e.message) || "") + " " + ((e && typeof e.data === "string") ? e.data : "");
+          if(e && e.code === 4001) return "<b>You cancelled in your wallet.</b> Nothing was sent — tap mint when ready.";
+          if(hay.indexOf("6189c6d0") !== -1 || /NoAgentId/.test(hay)) return "<b>No Binance Agent ID.</b> This wallet holds no Agent ID, and the contract requires one. Get an Agent ID in this wallet, then mint.";
+          if(hay.indexOf("589ed34b") !== -1 || /MintClosed/.test(hay)) return "<b>Mint is closed.</b> It closed before this mint landed — wait for it to open, then try again.";
+          if(hay.indexOf("a593dbf8") !== -1 || /AlreadyMinted/.test(hay)) return "<b>That take is already minted.</b> The board moved on — check the take number above, then mint again.";
+          if(hay.indexOf("b99e2ab7") !== -1 || /InsufficientPayment/.test(hay)) return "<b>Payment too low.</b> This mint needs 0.002 BNB — only your first mint is free. Check the price above and try again.";
+          if(/insufficient funds/i.test(hay)) return "<b>Not enough BNB.</b> This wallet can't cover the mint price + gas. Add BNB, then try again.";
+          if(/user rejected|user denied/i.test(hay)) return "<b>You cancelled in your wallet.</b> Nothing was sent — tap mint when ready.";
+          return "<b>The mint failed.</b> Nothing was minted. Check your wallet and connection, then try again.";
+        }
+        function dmMint(){
+          var p = dmProvider();
+          if(!p || !dmAccount || dmBusy) return;
+          if(!dmChainOk){ dmSetStatus("<b>Wrong network.</b> Switch to BNB Mainnet (chain 56) first — mint only runs there.", true); return; }
+          if(dmAgentOk !== true){ dmSetStatus("<b>No Binance Agent ID — mint not sent.</b> This wallet holds no Agent ID, and the contract requires one. Get an Agent ID in this wallet, then mint.", true); return; }
+          if(!chainOpen){ dmSetStatus("<b>Mint is closed right now.</b> Wait for it to open, then try again.", true); return; }
+          var target = mintTarget();
+          dmBusy = true; dmRender();
+          dmSetStatus("Checking Take " + pad(target) + " on-chain…");
+          Promise.all([
+            dmCall(NFT_ADDR, "0x6352211e" + word(target)).then(function(){ return true; }, function(){ return false; }),
+            dmCall(NFT_ADDR, "0xd5353916" + dmAddrWord(dmAccount)).catch(function(){ return null; }),
+            dmCall(NFT_ADDR, "0x24bbd049").catch(function(){ return null; })
+          ]).then(function(res){
+            if(dmHexOk(res[1])) dmMints = parseInt(res[1], 16);
+            var openNow = dmHexOk(res[2]) ? parseInt(res[2], 16) === 1 : chainOpen;
+            if(!openNow){
+              dmBusy = false; dmRender();
+              dmSetStatus("<b>Mint is closed right now.</b> Wait for it to open, then try again.", true);
+              return;
+            }
+            if(res[0]){
+              dmBusy = false;
+              refreshChain();
+              dmRender();
+              dmSetStatus("<b>Take " + pad(target) + " is already minted.</b> The board is refreshing — the next empty take is already picked above. Tap mint again.", true);
+              return;
+            }
+            dmSetStatus("Confirm in your wallet — minting Take " + pad(target) + " · " + (dmMints > 0 ? "0.002 BNB + gas" : "FREE · gas only") + "…");
+            p.request({method:"eth_sendTransaction", params:[{from:dmAccount, to:NFT_ADDR, data:"0xa0712d68" + word(target), value: dmMints > 0 ? EXTRA_WEI : "0x0"}]})
+              .then(function(hash){
+                dmSetStatus("Sent — waiting for the chain to confirm Take " + pad(target) + "… Tx <a href=\"https://bscscan.com/tx/" + hash + "\" target=\"_blank\" rel=\"noopener\">" + dmShort(hash) + " · BscScan</a>");
+                dmPollReceipt(hash, target, 0);
+              })
+              .catch(function(e){
+                dmBusy = false; dmRender();
+                dmSetStatus(dmErrorText(e), true);
+              });
+          }).catch(function(){
+            dmBusy = false; dmRender();
+            dmSetStatus("<b>Could not check the chain.</b> Connection hiccup — try again in a moment.", true);
+          });
+        }
+        function dmPollReceipt(hash, target, tries){
+          var p = dmProvider();
+          if(!p){ dmBusy = false; dmRender(); return; }
+          if(tries > 40){
+            dmBusy = false; dmRender();
+            dmSetStatus("Still confirming — tx <a href=\"https://bscscan.com/tx/" + hash + "\" target=\"_blank\" rel=\"noopener\">" + dmShort(hash) + " · BscScan</a>. The board above updates itself on its own.", false);
+            return;
+          }
+          setTimeout(function(){
+            p.request({method:"eth_getTransactionReceipt", params:[hash]}).then(function(rc){
+              if(!rc){ dmPollReceipt(hash, target, tries + 1); return; }
+              dmBusy = false;
+              if(rc.status === "0x1"){
+                dmSetStatus("<b>Take " + pad(target) + " is yours.</b> Mint confirmed in this wallet. Tx <a href=\"https://bscscan.com/tx/" + hash + "\" target=\"_blank\" rel=\"noopener\">" + dmShort(hash) + " · BscScan</a>");
+                refreshChain();
+                dmReadWallet();
+              } else {
+                dmSetStatus("<b>The transaction failed on-chain.</b> No take was minted — the usual causes: the take was taken first, the mint closed, or a missing Agent ID. Tx <a href=\"https://bscscan.com/tx/" + hash + "\" target=\"_blank\" rel=\"noopener\">" + dmShort(hash) + " · BscScan</a>", true);
+                refreshChain();
+              }
+              dmRender();
+            }).catch(function(){ dmPollReceipt(hash, target, tries + 1); });
+          }, 2500);
+        }
+        document.getElementById("dmConnectBtn").addEventListener("click", dmConnect);
+        dmMintBtn.addEventListener("click", dmMint);
+        dmSwitchBtn.addEventListener("click", dmSwitch);
+        /* Keep the panel in step with the rest of the page: every
+           selection change on the big screen and every mint-open flip
+           from the live board re-renders it. */
+        var dmSyncPrev = window.__riferaSyncTake;
+        window.__riferaSyncTake = function(n){ if(dmSyncPrev) dmSyncPrev(n); dmRender(); };
+        var dmApplyStatusOrig = applyStatus;
+        applyStatus = function(){ dmApplyStatusOrig(); dmRender(); };
+        (function(){
+          var p = dmProvider();
+          if(!p) return;
+          if(typeof p.on === "function"){
+            p.on("accountsChanged", function(accs){ dmAdopt(accs); });
+            p.on("chainChanged", function(){ dmReadChain(); dmReadWallet(); });
+          }
+          /* Already connected from an earlier visit? Adopt it silently —
+             eth_accounts never opens a popup. */
+          p.request({method:"eth_accounts"}).then(function(accs){
+            if(accs && accs.length && !dmAccount) dmAdopt(accs);
+          }).catch(function(){});
+        })();
+        dmRender();
+
         selectUpgrade(5);
         selectClaim(5);
 
@@ -2729,7 +3053,7 @@ Reply tx link only.</pre>
          root sw.js there. Either failure stays silent. */
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", function () {
-          navigator.serviceWorker.register("/sw.js", { scope: "./" })
+          navigator.serviceWorker.register("/sw.js")
             .catch(function () {
               return navigator.serviceWorker.register("sw.js");
             })
