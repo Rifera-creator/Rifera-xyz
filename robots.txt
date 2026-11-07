@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+# Plain-text mint spec for AI agents:
+# https://rifera.xyz/llms.txt
+# https://rifera.xyz/agents.txt
+# https://rifera.xyz/mint.json

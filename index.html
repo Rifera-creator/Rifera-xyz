@@ -1546,6 +1546,7 @@ Value: 0.002 BNB = 2000000000000000 wei + gas, 0 if first mint. Reply tx link on
           <div class="agents-body">
             <p class="agents-free">First mint per wallet: <span class="free">FREE</span><small>GAS ONLY · 0 BNB · EXTRA MINTS 0.002 BNB</small></p>
             <ul class="agents-list">
+              <li><span><b>Agents and bots welcome.</b> First mint per wallet is FREE — bring your own wallet with a Binance Agent ID and mint.</span></li>
               <li><span><b>All 7,620 takes open.</b> No whitelist. No reservation. No supply held back — every unminted take can be minted.</span></li>
               <li><span><b>Mint by take number.</b> Pick any unminted takeId, 1–7,620. One call: <span class="mono">mint(takeId)</span>.</span></li>
               <li><span><b>Requirement:</b> the minting wallet must hold a Binance Agent ID (balanceOf ≥ 1). Checked on-chain.</span></li>
@@ -1556,6 +1557,7 @@ function: mint(uint256 takeId) payable
 price: first mint per wallet 0 BNB · extra mints 0.002 BNB
 agentId: 0x60B9262456dE011F7d15a54CdD8c48bAaa8B022F (balanceOf ≥ 1)
 supply: 7,620 · no whitelist · no reservation</pre>
+            <p style="margin-top:.9rem;color:#9adbb2;font-family:'IBM Plex Mono',monospace;font-size:.85rem;line-height:1.6">For agents, plain text: <a href="/llms.txt" style="color:#eafff1">llms.txt</a> · <a href="/agents.txt" style="color:#eafff1">agents.txt</a> · <a href="/mint.json" style="color:#eafff1">mint.json</a> — same mint spec, machine-readable.</p>
           </div>
         </div>
       </section>
@@ -1734,9 +1736,9 @@ supply: 7,620 · no whitelist · no reservation</pre>
                     <button class="copy-btn" type="button" data-copy="promptClaim">Copy prompt</button>
                   </div>
                   <pre id="promptClaim">Claim $CURSOR for Take 0001 now. Level 5 · 35% pool.
-Wallet: [your wallet address] · Claim contract: 0xcbd1010895D155563f693855D62614652fdf96eC · BNB Chain.
-Verify I own it and this take has not claimed yet, then execute claim. Fee 0.00021 BNB + gas.
-Reply tx link + amount only.</pre>
+Contract 0xcbd1010895D155563f693855D62614652fdf96eC, BNB Chain 56, claim(uint256 tokenId) payable.
+Wallet: [your wallet], owns Take 0001, not claimed yet. Execute from my wallet only.
+Value: 0.00021 BNB = 210000000000000 wei + gas. Reply tx link + amount only.</pre>
                   <p class="p-note">Checked live at claim time — no snapshot. Upgrade before you claim: a claimed take is done.</p>
                 </div>
               </div>
@@ -1751,9 +1753,9 @@ Reply tx link + amount only.</pre>
             <button class="copy-btn" type="button" data-copy="promptUpgrade">Copy prompt</button>
           </div>
           <pre id="promptUpgrade">Upgrade Take 0001 to Level 5 now.
-Wallet: [your wallet address] · Contract: 0x0Cd348360109dd7f966B94a37Ff9BB0542b07Ec3 · BNB Chain.
-Verify I own it, then execute upgrade at 0.002 BNB per level + gas. Stop if already Level 5.
-Reply tx link only.</pre>
+Contract 0x0Cd348360109dd7f966B94a37Ff9BB0542b07Ec3, BNB Chain 56, upgrade(uint256 tokenId) payable.
+Wallet: [your wallet], owns Take 0001. Execute from my wallet only.
+Value: 0.002 BNB = 2000000000000000 wei + gas per call, repeat until Level 5. Reply tx link only.</pre>
           <p class="p-note">Follows the level you pick above. Never past Level 5.</p>
         </div>
 
@@ -2711,16 +2713,16 @@ Reply tx link only.</pre>
 
         function buildUpgradePrompt(){
           return "Upgrade Take " + pad(selected) + " to Level " + upTarget + " now.\n" +
-            "Wallet: [your wallet address] · Contract: 0x0Cd348360109dd7f966B94a37Ff9BB0542b07Ec3 · BNB Chain.\n" +
-            "Verify I own it, then execute upgrade at 0.002 BNB per level + gas. Stop if already Level " + upTarget + ".\n" +
-            "Reply tx link only.";
+            "Contract 0x0Cd348360109dd7f966B94a37Ff9BB0542b07Ec3, BNB Chain 56, upgrade(uint256 tokenId) payable.\n" +
+            "Wallet: [your wallet], owns Take " + pad(selected) + ". Execute from my wallet only.\n" +
+            "Value: 0.002 BNB = 2000000000000000 wei + gas per call, repeat until Level " + upTarget + ". Reply tx link only.";
         }
         function buildClaimPrompt(){
           var L = LEVELS[claimTarget];
           return "Claim $CURSOR for Take " + pad(selected) + " now. Level " + claimTarget + " · " + L.share + "% pool.\n" +
-            "Wallet: [your wallet address] · Claim contract: 0xcbd1010895D155563f693855D62614652fdf96eC · BNB Chain.\n" +
-            "Verify I own it and this take has not claimed yet, then execute claim. Fee 0.00021 BNB + gas.\n" +
-            "Reply tx link + amount only.";
+            "Contract 0xcbd1010895D155563f693855D62614652fdf96eC, BNB Chain 56, claim(uint256 tokenId) payable.\n" +
+            "Wallet: [your wallet], owns Take " + pad(selected) + ", not claimed yet. Execute from my wallet only.\n" +
+            "Value: 0.00021 BNB = 210000000000000 wei + gas. Reply tx link + amount only.";
         }
         function mintTarget(){
           /* A filled take can never be minted again — the contract

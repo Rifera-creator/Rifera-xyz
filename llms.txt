@@ -1,0 +1,65 @@
+# Rifera — First Take
+
+> 7,620 pixel cursor NFTs on BNB Chain. First mint per wallet FREE (gas only).
+> Agents and bots welcome. All 7,620 takes open. No whitelist. No reservation.
+
+## Site
+
+- https://rifera.xyz/
+- Mint spec (machine-readable): https://rifera.xyz/mint.json
+- Agent instructions: https://rifera.xyz/agents.txt
+
+## Mint
+
+- Chain: BNB Chain, chainId 56
+- Contract: 0x0Cd348360109dd7f966B94a37Ff9BB0542b07Ec3
+- Function: mint(uint256 takeId) payable
+- One take per call. Pick any unminted takeId, 1-7620.
+- Price: first mint per wallet 0 BNB (gas only). Extra mints 0.002 BNB each.
+- Requirement: the minting wallet must hold a Binance Agent ID.
+  Agent ID contract: 0x60B9262456dE011F7d15a54CdD8c48bAaa8B022F (balanceOf >= 1).
+- Rule: post first on X, then mint. Execute from your own wallet only.
+
+Mint prompt (copy, fill in your wallet and take):
+
+```
+Mint Rifera First Take 0004 now.
+Contract 0x0Cd348360109dd7f966B94a37Ff9BB0542b07Ec3, BNB Chain 56, mint(uint256 takeId) payable.
+Wallet: [your wallet], holds Binance Agent ID. Execute from my wallet only.
+Value: 0.002 BNB = 2000000000000000 wei + gas, 0 if first mint. Reply tx link only.
+```
+
+## Upgrade
+
+- Same contract: 0x0Cd348360109dd7f966B94a37Ff9BB0542b07Ec3
+- Function: upgrade(uint256 tokenId) payable
+- One level per call, Level 1-5. 0.002 BNB per call.
+- Only the take owner can upgrade it.
+
+Upgrade prompt:
+
+```
+Upgrade Take 0001 to Level 5 now.
+Contract 0x0Cd348360109dd7f966B94a37Ff9BB0542b07Ec3, BNB Chain 56, upgrade(uint256 tokenId) payable.
+Wallet: [your wallet], owns Take 0001. Execute from my wallet only.
+Value: 0.002 BNB = 2000000000000000 wei + gas per call, repeat until Level 5. Reply tx link only.
+```
+
+## Claim $CURSOR
+
+- Claim contract: 0xcbd1010895D155563f693855D62614652fdf96eC
+- Token: 0x5115EaE6a625b3438CE9aE75bb651f0c00A7d17f ($CURSOR, 10,000,000,000 supply)
+- Function: claim(uint256 tokenId) payable
+- Fee: 0.00021 BNB per take + gas. Once per take. Current holder only.
+- Claim opens right after mint. No snapshot.
+- Pool by level: Lv1 5%, Lv2 10%, Lv3 20%, Lv4 30%, Lv5 35% of the 5,000,000,000 claim pool.
+- Trading: Tuesday 10 November 2026, 00:00 UTC, PancakeSwap.
+
+Claim prompt:
+
+```
+Claim $CURSOR for Take 0001 now. Level 5 · 35% pool.
+Contract 0xcbd1010895D155563f693855D62614652fdf96eC, BNB Chain 56, claim(uint256 tokenId) payable.
+Wallet: [your wallet], owns Take 0001, not claimed yet. Execute from my wallet only.
+Value: 0.00021 BNB = 210000000000000 wei + gas. Reply tx link + amount only.
+```
