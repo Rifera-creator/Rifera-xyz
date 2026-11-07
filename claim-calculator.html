@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="color-scheme" content="light dark" />
+<link rel="icon" href="data:," />
+<title>Live Claim Calculator — Rifera First Take · $CURSOR</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f2f2ee; --surface:#ffffff; --surface2:#eceee8; --ink:#141612; --muted:#5c6259; --line:#dde0d6;
+    --gold:#b9821e; --gold-strong:#8f650f; --gold-bg:#fdf3d7; --green:#17724f; --green-bg:#e3f2ea;
+    --dark-card:#141612; --dark-card-ink:#f7f3e6; --dark-card-muted:#b9bcab;
+    --radius:18px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0d0f0b; --surface:#171a14; --surface2:#1e211a; --ink:#f2f1e9; --muted:#a7ab9c; --line:#2b2f26;
+      --gold:#e9b949; --gold-strong:#f0c95e; --gold-bg:#2a2412; --green:#4ec48f; --green-bg:#12291f;
+      --dark-card:#e9b949; --dark-card-ink:#17150a; --dark-card-muted:#5a4d1f;
+    }
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:"Plus Jakarta Sans",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  .mono{font-family:"IBM Plex Mono",ui-monospace,monospace}
+  .wrap{max-width:1060px;margin:0 auto;padding:20px 18px 56px}
+  a{color:inherit}
+
+  /* ---------- top status strip ---------- */
+  .strip{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-bottom:22px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:-.01em;font-size:15px}
+  .cursor-ico{width:26px;height:26px;flex:none}
+  .live-pill{display:inline-flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:7px 12px;font-size:12.5px;font-weight:600;color:var(--muted)}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--green);flex:none;animation:pulse 1.8s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(23,114,79,.35)}70%{box-shadow:0 0 0 7px rgba(23,114,79,0)}100%{box-shadow:0 0 0 0 rgba(23,114,79,0)}}
+  @media (prefers-reduced-motion: reduce){.dot{animation:none} html{scroll-behavior:auto}}
+
+  /* ---------- hero ---------- */
+  .hero{margin:6px 0 26px}
+  .hero h1{font-size:clamp(32px,6vw,54px);line-height:.98;letter-spacing:-.03em;margin:0 0 12px;font-weight:800;max-width:640px}
+  .hero h1 em{font-style:normal;color:var(--gold)}
+  .hero p{margin:0;color:var(--muted);font-size:16.5px;line-height:1.55;max-width:560px}
+  .hero-stats{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+  .stat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 16px;min-width:132px}
+  .stat b{display:block;font-size:20px;letter-spacing:-.02em}
+  .stat span{font-size:12px;color:var(--muted);font-weight:600}
+
+  /* ---------- calculator ---------- */
+  .calc{display:grid;grid-template-columns:1.05fr .95fr;gap:16px;align-items:stretch}
+  @media (max-width:820px){.calc{grid-template-columns:1fr}}
+  .panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:22px}
+  .panel h2{margin:0 0 4px;font-size:17px;letter-spacing:-.01em}
+  .panel .sub{margin:0 0 18px;color:var(--muted);font-size:13.5px;line-height:1.5}
+  .field{margin-bottom:20px}
+  .field:last-child{margin-bottom:0}
+  .field-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:10px}
+  .field-head label{font-size:13px;font-weight:700;letter-spacing:.02em;text-transform:uppercase;color:var(--muted)}
+  .field-head output{font-weight:700;font-size:15px}
+  .levels{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}
+  .lvl{appearance:none;border:1.5px solid var(--line);background:var(--surface2);color:var(--ink);border-radius:12px;padding:10px 4px 8px;cursor:pointer;text-align:center;font-family:inherit;transition:border-color .15s, background .15s}
+  .lvl b{display:block;font-size:17px;line-height:1}
+  .lvl span{display:block;font-size:10.5px;color:var(--muted);font-weight:700;margin-top:4px}
+  .lvl[aria-pressed="true"]{border-color:var(--gold);background:var(--gold-bg)}
+  .lvl[aria-pressed="true"] span{color:var(--gold-strong)}
+  .lvl:focus-visible, button:focus-visible, input:focus-visible{outline:2.5px solid var(--gold);outline-offset:2px}
+  input[type=range]{width:100%;accent-color:var(--gold);height:28px;cursor:pointer}
+  .presets{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+  .chip{appearance:none;border:1px solid var(--line);background:transparent;color:var(--muted);font-family:inherit;font-size:12px;font-weight:700;border-radius:999px;padding:6px 11px;cursor:pointer}
+  .chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .stepper{display:flex;align-items:center;gap:10px}
+  .stepper button{width:44px;height:44px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface2);color:var(--ink);font-size:20px;font-weight:700;cursor:pointer;font-family:inherit}
+  .stepper input{width:76px;height:44px;text-align:center;font-size:18px;font-weight:700;border:1.5px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);font-family:"IBM Plex Mono",monospace}
+  .hint{font-size:12.5px;color:var(--muted);margin-top:8px;line-height:1.5}
+
+  .result{background:var(--dark-card);color:var(--dark-card-ink);border-radius:var(--radius);padding:22px;display:flex;flex-direction:column}
+  .result .kicker{font-size:12px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;opacity:.75}
+  .big{font-size:clamp(34px,5.2vw,46px);font-weight:700;letter-spacing:-.02em;line-height:1.05;margin:10px 0 2px;font-variant-numeric:tabular-nums}
+  .big small{font-size:.42em;font-weight:600;opacity:.8}
+  .usd{font-size:19px;font-weight:700;margin:2px 0 16px}
+  .usd span{opacity:.7;font-weight:600;font-size:13px}
+  .rows{border-top:1px solid rgba(127,127,110,.35);margin-top:auto}
+  .row{display:flex;justify-content:space-between;gap:14px;padding:10px 0;border-bottom:1px solid rgba(127,127,110,.22);font-size:13.5px}
+  .row span{opacity:.75}
+  .row b{font-variant-numeric:tabular-nums;text-align:right}
+  .row:last-child{border-bottom:none}
+  .warn{margin-top:14px;font-size:12.5px;line-height:1.55;background:rgba(127,127,110,.14);border-radius:10px;padding:10px 12px}
+
+  /* ---------- sections ---------- */
+  section{margin-top:34px}
+  .sec-head{display:flex;align-items:baseline;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+  .sec-head h2{font-size:22px;letter-spacing:-.02em;margin:0}
+  .sec-head p{margin:0;color:var(--muted);font-size:13.5px}
+  .bars{display:grid;gap:9px}
+  .bar-row{display:grid;grid-template-columns:52px 1fr 108px;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:12px 14px;cursor:pointer;text-align:left;font-family:inherit;color:var(--ink);width:100%}
+  .bar-row .lvname{font-weight:800;font-size:14px}
+  .bar-row .track{height:10px;background:var(--surface2);border-radius:99px;overflow:hidden}
+  .bar-row .fill{height:100%;background:var(--gold);border-radius:99px;transition:width .4s ease}
+  .bar-row .amt{text-align:right;font-weight:700;font-size:13.5px;font-variant-numeric:tabular-nums}
+  .bar-row .amt span{display:block;font-weight:600;color:var(--muted);font-size:11.5px}
+  .bar-row.active{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold) inset}
+  @media (max-width:560px){
+    .bar-row{grid-template-columns:1fr auto;grid-template-areas:"name amt" "track track";row-gap:8px}
+    .bar-row .lvname{grid-area:name}
+    .bar-row .track{grid-area:track}
+    .bar-row .amt{grid-area:amt;font-size:12.5px}
+  }
+
+  .table-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+  .trow{display:grid;grid-template-columns:64px 1fr 1fr 1fr;gap:8px;padding:13px 16px;border-bottom:1px solid var(--line);font-size:13.5px;align-items:center}
+  .trow:last-child{border-bottom:none}
+  .trow.head{font-size:11.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);background:var(--surface2)}
+  .trow .num{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;text-align:right}
+  .trow.head .num{text-align:right}
+  .trow.active{background:var(--gold-bg);font-weight:700}
+  @media (max-width:560px){.trow{grid-template-columns:48px 1fr 1fr;font-size:12.5px;padding:12px}.trow .col-full{display:none}.trow.head .col-full{display:none}}
+
+  .sim-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media (max-width:820px){.sim-grid{grid-template-columns:1fr}}
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  @media (max-width:820px){.steps{grid-template-columns:1fr}}
+  .step{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px}
+  .step .n{width:28px;height:28px;border-radius:8px;background:var(--gold-bg);color:var(--gold-strong);display:grid;place-items:center;font-weight:800;font-size:13px;margin-bottom:10px}
+  .step h3{margin:0 0 5px;font-size:15px}
+  .step p{margin:0;color:var(--muted);font-size:13.5px;line-height:1.55}
+  .step p b{color:var(--ink)}
+
+  footer{margin-top:38px;border-top:1px solid var(--line);padding-top:18px;color:var(--muted);font-size:12.5px;line-height:1.65}
+  footer .addr{word-break:break-all}
+  .cta{display:inline-flex;align-items:center;gap:8px;margin-top:14px;background:var(--ink);color:var(--bg);text-decoration:none;font-weight:700;font-size:14px;padding:12px 18px;border-radius:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="strip">
+    <div class="brand">
+      <svg class="cursor-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3l14 7.5-6.2 1.6L15 19l-2.8 1.2-2.1-6.6L6 17.5V3z" fill="#e9b949" stroke="#141612" stroke-width="1.4" stroke-linejoin="round"/></svg>
+      Rifera First Take
+    </div>
+    <div class="live-pill"><span class="dot" aria-hidden="true"></span><span id="liveStatus">Mint open · <span class="mono" id="mintedLabel">110 / 7,620</span> minted</span></div>
+  </div>
+
+  <header class="hero">
+    <h1>Work out your claim.<br><em>See it instantly.</em></h1>
+    <p>Slide the level and take count — your share of the <b>5 billion $CURSOR</b> claim pool is calculated on the spot, dollar simulation included.</p>
+    <div class="hero-stats">
+      <div class="stat"><b class="mono">5.0B</b><span>Claim pool · 50% of supply</span></div>
+      <div class="stat"><b class="mono">7,620</b><span>Total takes</span></div>
+      <div class="stat"><b class="mono">0.00021 BNB</b><span>Claim fee / take</span></div>
+      <div class="stat"><b class="mono">Lv 5 · 35%</b><span>Largest pool</span></div>
+    </div>
+  </header>
+
+  <!-- ================= CALCULATOR ================= -->
+  <div class="calc" id="kalkulator">
+    <div class="panel">
+      <h2>Set your takes</h2>
+      <p class="sub">Each level's pool is split evenly across every take that claims at that level. The fewer claims at your level, the bigger your share.</p>
+
+      <div class="field">
+        <div class="field-head"><label for="lvlGroup">Take level</label><output id="lvlPoolOut">Pool 1.75B</output></div>
+        <div class="levels" id="lvlGroup" role="group" aria-label="Choose level">
+          <button type="button" class="lvl" data-lvl="1" aria-pressed="false"><b>1</b><span>5%</span></button>
+          <button type="button" class="lvl" data-lvl="2" aria-pressed="false"><b>2</b><span>10%</span></button>
+          <button type="button" class="lvl" data-lvl="3" aria-pressed="false"><b>3</b><span>20%</span></button>
+          <button type="button" class="lvl" data-lvl="4" aria-pressed="false"><b>4</b><span>30%</span></button>
+          <button type="button" class="lvl" data-lvl="5" aria-pressed="true"><b>5</b><span>35%</span></button>
+        </div>
+        <p class="hint">Going up 1 level = 0.002 BNB per take. From Lv 1 to Lv 5 that means 4 upgrades.</p>
+      </div>
+
+      <div class="field">
+        <div class="field-head"><label for="takeRange">Takes you hold</label><output class="mono" id="takeOut">1 take</output></div>
+        <div class="stepper">
+          <button type="button" id="takeMinus" aria-label="Decrease takes">−</button>
+          <input id="takeInput" type="number" min="1" max="500" value="1" inputmode="numeric" aria-label="Number of takes">
+          <button type="button" id="takePlus" aria-label="Increase takes">+</button>
+        </div>
+        <input type="range" id="takeRange" min="1" max="50" value="1" aria-label="Slide take count" style="margin-top:6px">
+      </div>
+
+      <div class="field">
+        <div class="field-head"><label for="claimerRange">Claiming at this level</label><output class="mono" id="claimerOut">110 takes</output></div>
+        <input type="range" id="claimerRange" min="10" max="7620" step="10" value="110">
+        <div class="presets" role="group" aria-label="Claimer count presets">
+          <button type="button" class="chip" data-claimers="110" aria-pressed="true">110 · minted so far</button>
+          <button type="button" class="chip" data-claimers="500" aria-pressed="false">500</button>
+          <button type="button" class="chip" data-claimers="1000" aria-pressed="false">1,000</button>
+          <button type="button" class="chip" data-claimers="3000" aria-pressed="false">3,000</button>
+          <button type="button" class="chip" data-claimers="7620" aria-pressed="false">7,620 · all</button>
+        </div>
+        <p class="hint">This is the biggest factor in your result. 110 = the number minted when last checked on-chain (Nov 7, 2026).</p>
+      </div>
+    </div>
+
+    <div class="result" aria-live="polite">
+      <div class="kicker">You get</div>
+      <div class="big mono"><span id="resTokens">15,909,091</span> <small>$CURSOR</small></div>
+      <div class="usd">≈ $<span id="resUsd">12.27</span> <span>· 5 BNB pairing simulation</span></div>
+      <div class="rows">
+        <div class="row"><span>Per take at Lv <span id="resLvlA">5</span></span><b class="mono" id="resPerTake">15,909,091</b></div>
+        <div class="row"><span>Your share of the level pool</span><b class="mono" id="resShare">0.91%</b></div>
+        <div class="row"><span>Total claim fee</span><b class="mono" id="resFee">0.00021 BNB</b></div>
+        <div class="row"><span>Upgrade cost to Lv <span id="resLvlB">5</span></span><b class="mono" id="resUpgrade">0.008 BNB</b></div>
+      </div>
+      <div class="warn">You can claim as soon as you hold a take — no snapshot, no waiting. The figures above are pool math, not a price promise: $CURSOR isn't trading yet and pairing is still on hold, so the dollar value is a simulation from the scenarios below.</div>
+    </div>
+  </div>
+
+  <!-- ================= POOL BARS ================= -->
+  <section aria-labelledby="poolTitle">
+    <div class="sec-head">
+      <h2 id="poolTitle">Pool by level</h2>
+      <p>Total claim pool 5,000,000,000 $CURSOR · click a bar to switch level</p>
+    </div>
+    <div class="bars" id="bars"></div>
+  </section>
+
+  <!-- ================= TABLE ================= -->
+  <section aria-labelledby="tblTitle">
+    <div class="sec-head">
+      <h2 id="tblTitle">Per take, by scenario</h2>
+      <p>In $CURSOR per 1 take</p>
+    </div>
+    <div class="table-card" id="tbl"></div>
+  </section>
+
+  <!-- ================= PRICE SIM ================= -->
+  <section aria-labelledby="simTitle">
+    <div class="sec-head">
+      <h2 id="simTitle">Price simulation</h2>
+      <p>Pairing on hold — these are scenarios, not a market price</p>
+    </div>
+    <div class="sim-grid">
+      <div class="panel">
+        <div class="field">
+          <div class="field-head"><label for="pairRange">BNB in the initial pairing</label><output class="mono" id="pairOut">5 BNB</output></div>
+          <input type="range" id="pairRange" min="1" max="20" step="1" value="5">
+          <div class="presets">
+            <button type="button" class="chip pair-chip" data-pair="1" aria-pressed="false">1 BNB</button>
+            <button type="button" class="chip pair-chip" data-pair="5" aria-pressed="true">5 BNB</button>
+            <button type="button" class="chip pair-chip" data-pair="10" aria-pressed="false">10 BNB</button>
+            <button type="button" class="chip pair-chip" data-pair="20" aria-pressed="false">20 BNB</button>
+          </div>
+        </div>
+        <div class="field" style="margin-top:20px">
+          <div class="field-head"><label for="bnbRange">BNB price</label><output class="mono" id="bnbOut">$694</output></div>
+          <input type="range" id="bnbRange" min="300" max="1500" step="1" value="694">
+          <p class="hint">Reference $694 = the BNB price when this calculator was made (Nov 7, 2026). Slide for other scenarios. LP pool paired: 4.5 billion $CURSOR (45% of supply).</p>
+        </div>
+      </div>
+      <div class="panel">
+        <h2>Scenario results</h2>
+        <p class="sub">Starting price from the pairing, before any trading at all.</p>
+        <div class="rows" style="border-top:none">
+          <div class="row" style="color:var(--ink)"><span style="color:var(--muted)">Price per $CURSOR</span><b class="mono" id="simPrice">$0.00000077</b></div>
+          <div class="row" style="color:var(--ink)"><span style="color:var(--muted)">FDV (10B supply)</span><b class="mono" id="simFdv">$7,711</b></div>
+          <div class="row" style="color:var(--ink)"><span style="color:var(--muted)">Your current claim is worth</span><b class="mono" id="simYours">$12.27</b></div>
+          <div class="row" style="color:var(--ink)"><span style="color:var(--muted)">1 take Lv 5 (all claim)</span><b class="mono" id="simLv5Full">$0.18</b></div>
+        </div>
+        <a class="cta" href="https://rifera.xyz" target="_blank" rel="noopener">Mint at rifera.xyz
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= STEPS ================= -->
+  <section aria-labelledby="stepTitle">
+    <div class="sec-head"><h2 id="stepTitle">How to claim</h2></div>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><h3>Mint a take</h3><p>First mint per wallet is <b>free</b> (gas only), then <b>0.002 BNB</b> each. Binance Agent ID required.</p></div>
+      <div class="step"><div class="n">2</div><h3>Upgrade the level</h3><p>Raise your take's level, <b>0.002 BNB per level</b>. The higher the level, the bigger the pool being split.</p></div>
+      <div class="step"><div class="n">3</div><h3>Claim $CURSOR</h3><p>Right after you hold a take. Fee <b>0.00021 BNB per take</b>, your level's pool split evenly among claimers.</p></div>
+    </div>
+  </section>
+
+  <footer>
+    <p style="margin:0 0 6px">Pool figures follow the final $CURSOR split: total supply 10,000,000,000 — claim 50% (5B), LP 45% (4.5B), owner 5% (500M). Pool by level: Lv 1 = 250M · Lv 2 = 500M · Lv 3 = 1B · Lv 4 = 1.5B · Lv 5 = 1.75B.</p>
+    <p class="addr" style="margin:0">NFT 0x0Cd348360109dd7f966B94a37Ff9BB0542b07Ec3 · Claim 0xcbd1010895D155563f693855D62614652fdf96eC · $CURSOR 0x5115EaE6a625b3438CE9aE75bb651f0c00A7d17f · BNB Chain. Dollar values on this page are pairing-scenario simulations, not a live price — trading isn't open yet and pairing is still on hold.</p>
+  </footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var POOLS = {1:250000000, 2:500000000, 3:1000000000, 4:1500000000, 5:1750000000};
+  var PCT   = {1:"5%", 2:"10%", 3:"20%", 4:"30%", 5:"35%"};
+  var TOTAL_TAKES = 7620, LP_TOKENS = 4500000000, SUPPLY = 10000000000;
+  var CLAIM_FEE = 0.00021, UPGRADE_FEE = 0.002;
+
+  var state = { lvl:5, takes:1, claimers:110, pairBnb:5, bnbPrice:694 };
+  var $ = function(id){ return document.getElementById(id); };
+
+  function fmtID(n, dec){
+    return n.toLocaleString("en-US", {minimumFractionDigits:dec||0, maximumFractionDigits:dec||0});
+  }
+  function fmtCompact(n){
+    if (n >= 1e9) return (n/1e9).toLocaleString("en-US",{maximumFractionDigits:2}) + "B";
+    if (n >= 1e6) return (n/1e6).toLocaleString("en-US",{maximumFractionDigits:1}) + "M";
+    return fmtID(Math.round(n));
+  }
+  function fmtUsd(n){
+    if (n >= 1000) return "$" + fmtID(Math.round(n));
+    return "$" + n.toLocaleString("en-US",{minimumFractionDigits:2, maximumFractionDigits:2});
+  }
+  function fmtBnb(n){
+    return n.toLocaleString("en-US",{minimumFractionDigits:5, maximumFractionDigits:5}) + " BNB";
+  }
+
+  var displayed = 0, rafId = null;
+  function animateTokens(target){
+    var start = displayed, t0 = performance.now(), dur = 420;
+    if (rafId) cancelAnimationFrame(rafId);
+    function tick(t){
+      var p = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - p, 3);
+      var v = start + (target - start) * e;
+      $("resTokens").textContent = fmtID(Math.round(v));
+      if (p < 1) rafId = requestAnimationFrame(tick); else displayed = target;
+    }
+    rafId = requestAnimationFrame(tick);
+  }
+
+  function render(){
+    var pool = POOLS[state.lvl];
+    var claimers = Math.max(state.claimers, state.takes);
+    var perTake = pool / claimers;
+    var yours = perTake * state.takes;
+    var share = (state.takes / claimers) * 100;
+    var price = (state.pairBnb * state.bnbPrice) / LP_TOKENS; // USD per CURSOR
+    var usd = yours * price;
+
+    $("lvlPoolOut").textContent = "Pool " + fmtCompact(pool);
+    $("takeOut").textContent = fmtID(state.takes) + (state.takes === 1 ? " take" : " takes");
+    $("claimerOut").textContent = fmtID(claimers) + " takes";
+    animateTokens(yours);
+    $("resUsd").textContent = usd.toLocaleString("en-US",{minimumFractionDigits:2, maximumFractionDigits:2});
+    document.querySelector(".usd span:last-child").textContent = "· " + state.pairBnb + " BNB pairing simulation";
+    $("resPerTake").textContent = fmtID(Math.round(perTake));
+    $("resLvlA").textContent = state.lvl;
+    $("resLvlB").textContent = state.lvl;
+    $("resShare").textContent = share.toLocaleString("en-US",{minimumFractionDigits:2, maximumFractionDigits:2}) + "%";
+    $("resFee").textContent = fmtBnb(CLAIM_FEE * state.takes);
+    $("resUpgrade").textContent = state.lvl === 1 ? "0 BNB · already Lv 1" : fmtBnb(UPGRADE_FEE * (state.lvl - 1) * state.takes);
+
+    // sim panel
+    $("pairOut").textContent = state.pairBnb + " BNB";
+    $("bnbOut").textContent = "$" + fmtID(state.bnbPrice);
+    $("simPrice").textContent = "$" + price.toLocaleString("en-US",{minimumFractionDigits:8, maximumFractionDigits:8});
+    $("simFdv").textContent = fmtUsd(price * SUPPLY);
+    $("simYours").textContent = fmtUsd(usd);
+    $("simLv5Full").textContent = fmtUsd((POOLS[5] / TOTAL_TAKES) * price);
+
+    // sync controls
+    var lvBtns = document.querySelectorAll(".lvl");
+    for (var i=0;i<lvBtns.length;i++) lvBtns[i].setAttribute("aria-pressed", String(+lvBtns[i].dataset.lvl === state.lvl));
+    var chips = document.querySelectorAll(".chip[data-claimers]");
+    for (var j=0;j<chips.length;j++) chips[j].setAttribute("aria-pressed", String(+chips[j].dataset.claimers === state.claimers));
+    var pchips = document.querySelectorAll(".pair-chip");
+    for (var k=0;k<pchips.length;k++) pchips[k].setAttribute("aria-pressed", String(+pchips[k].dataset.pair === state.pairBnb));
+    $("claimerRange").value = state.claimers;
+    $("pairRange").value = state.pairBnb;
+    $("bnbRange").value = state.bnbPrice;
+
+    // highlight pool bar + table row
+    var bars = document.querySelectorAll(".bar-row");
+    for (var b=0;b<bars.length;b++) bars[b].classList.toggle("active", +bars[b].dataset.lvl === state.lvl);
+    var rows = document.querySelectorAll(".trow[data-lvl]");
+    for (var r=0;r<rows.length;r++) rows[r].classList.toggle("active", +rows[r].dataset.lvl === state.lvl);
+  }
+
+  function setLvl(l){ state.lvl = Math.min(5, Math.max(1, l)); render(); }
+  function setTakes(n){
+    n = Math.round(Math.min(500, Math.max(1, n || 1)));
+    state.takes = n;
+    $("takeInput").value = n;
+    $("takeRange").value = Math.min(50, n);
+    render();
+  }
+  function setClaimers(n){ state.claimers = Math.min(TOTAL_TAKES, Math.max(10, Math.round(n/10)*10 || 10)); render(); }
+
+  // level buttons + bars
+  document.querySelectorAll(".lvl").forEach(function(b){ b.addEventListener("click", function(){ setLvl(+b.dataset.lvl); }); });
+
+  // bars build
+  var barsHtml = "";
+  [1,2,3,4,5].forEach(function(l){
+    var w = (POOLS[l] / POOLS[5]) * 100;
+    barsHtml += '<button type="button" class="bar-row" data-lvl="'+l+'">'
+      + '<span class="lvname">Lv '+l+'</span>'
+      + '<span class="track"><span class="fill" style="width:'+w+'%"></span></span>'
+      + '<span class="amt mono">'+fmtID(POOLS[l])+'<span>'+PCT[l]+' of the claim pool</span></span></button>';
+  });
+  $("bars").innerHTML = barsHtml;
+  document.querySelectorAll(".bar-row").forEach(function(b){ b.addEventListener("click", function(){ setLvl(+b.dataset.lvl); document.getElementById("kalkulator").scrollIntoView({behavior:"smooth", block:"start"}); }); });
+
+  // table build
+  var scenarios = [110, 1000, TOTAL_TAKES];
+  var tbl = '<div class="trow head"><span>Level</span><span class="num">110 claims</span><span class="num">1,000 claims</span><span class="num col-full">7,620 · all</span></div>';
+  [1,2,3,4,5].forEach(function(l){
+    tbl += '<div class="trow" data-lvl="'+l+'"><span><b>Lv '+l+'</b></span>'
+      + scenarios.map(function(s, idx){ return '<span class="num'+(idx===2?' col-full':'')+'">'+fmtID(Math.round(POOLS[l]/s))+'</span>'; }).join("")
+      + '</div>';
+  });
+  $("tbl").innerHTML = tbl;
+
+  // takes controls
+  $("takeRange").addEventListener("input", function(e){ setTakes(+e.target.value); });
+  $("takeInput").addEventListener("change", function(e){ setTakes(+e.target.value); });
+  $("takeMinus").addEventListener("click", function(){ setTakes(state.takes - 1); });
+  $("takePlus").addEventListener("click", function(){ setTakes(state.takes + 1); });
+
+  // claimers controls
+  $("claimerRange").addEventListener("input", function(e){ setClaimers(+e.target.value); });
+  document.querySelectorAll(".chip[data-claimers]").forEach(function(c){ c.addEventListener("click", function(){ setClaimers(+c.dataset.claimers); }); });
+
+  // sim controls
+  $("pairRange").addEventListener("input", function(e){ state.pairBnb = +e.target.value; render(); });
+  document.querySelectorAll(".pair-chip").forEach(function(c){ c.addEventListener("click", function(){ state.pairBnb = +c.dataset.pair; render(); }); });
+  $("bnbRange").addEventListener("input", function(e){ state.bnbPrice = +e.target.value; render(); });
+
+  render();
+
+  /* ---- Live on-chain check: totalSupply() on the NFT contract via public BSC RPC.
+         Snapshot fallback (110, checked Nov 7, 2026) stays if every RPC fails. ---- */
+  (function liveCheck(){
+    var NFT = "0x0Cd348360109dd7f966B94a37Ff9BB0542b07Ec3";
+    var RPCS = ["https://bsc-dataseed.binance.org", "https://bsc-dataseed1.defibit.io", "https://bsc-dataseed1.ninicoin.io"];
+    var body = JSON.stringify({jsonrpc:"2.0", id:1, method:"eth_call", params:[{to:NFT, data:"0x18160ddd"}, "latest"]});
+    function tryRpc(i){
+      if (i >= RPCS.length) return;
+      fetch(RPCS[i], {method:"POST", headers:{"Content-Type":"application/json"}, body:body})
+        .then(function(r){ return r.json(); })
+        .then(function(j){
+          if (!j || !j.result) throw new Error("no result");
+          var n = parseInt(j.result, 16);
+          if (isFinite(n) && n > 0 && n <= TOTAL_TAKES) {
+            $("mintedLabel").textContent = fmtID(n) + " / 7,620";
+            document.querySelectorAll(".chip[data-claimers='110']").forEach(function(c){ c.textContent = fmtID(n) + " · minted so far"; });
+          } else { tryRpc(i + 1); }
+        })
+        .catch(function(){ tryRpc(i + 1); });
+    }
+    tryRpc(0);
+  })();
+})();
+</script>
+</body>
+</html>
