@@ -1757,6 +1757,7 @@ Wallet: [your wallet], owns Take 0001. Execute from my wallet only.
 Value: 0.002 BNB = 2000000000000000 wei + gas per call, repeat until Level 5. Reply tx link only.</pre>
           <p class="p-note">Follows the level you pick above. Never past Level 5.</p>
         </div>
+        <div class="claim-status" id="upStatus" aria-live="polite"></div>
 
         <div class="two">
           <div class="card">
@@ -2609,8 +2610,19 @@ Value: 0.002 BNB = 2000000000000000 wei + gas per call, repeat until Level 5. Re
 
         /* ---------- post gate ---------- */
         var confirmBtn = document.getElementById("confirmPost");
+        try{
+          if(localStorage.getItem("rifera-posted") === "1"){
+            confirmBtn.classList.add("done");
+            confirmBtn.textContent = "Posted ✓";
+            document.getElementById("postStatus").innerHTML = "<span class='ok'>Step 1 done · posted.</span><span>Step 2: hand the prompt in section 02 to your agent.</span>";
+            var _ps = document.querySelectorAll("#flowSteps .step");
+            _ps[0].classList.remove("now"); _ps[0].classList.add("done"); _ps[0].querySelector(".n").textContent = "✓";
+            _ps[1].classList.add("now");
+          }
+        }catch(e){}
         confirmBtn.addEventListener("click", function(){
           if(confirmBtn.classList.contains("done")) return;
+          try{ localStorage.setItem("rifera-posted", "1"); }catch(e){}
           confirmBtn.classList.add("done");
           confirmBtn.textContent = "Posted ✓";
           document.getElementById("postStatus").innerHTML = "<span class='ok'>Step 1 done · posted.</span><span>Step 2: hand the prompt in section 02 to your agent.</span>";
@@ -2785,15 +2797,8 @@ Value: 0.002 BNB = 2000000000000000 wei + gas per call, repeat until Level 5. Re
           el.addEventListener("click", function(){ selectClaim(parseInt(el.getAttribute("data-claim-level"),10)); });
           el.addEventListener("keydown", function(e){ if(e.key === "Enter" || e.key === " "){ e.preventDefault(); selectClaim(parseInt(el.getAttribute("data-claim-level"),10)); } });
         });
-        document.getElementById("upGoBtn").addEventListener("click", function(){
-          document.getElementById("promptUpgradeBox").scrollIntoView({behavior: reduced ? "auto" : "smooth", block:"center"});
-        });
-        document.getElementById("claimBtn").addEventListener("click", function(){
-          var cs = document.getElementById("claimStatus");
-          cs.className = "claim-status show";
-          cs.innerHTML = "<b>$CURSOR claim is open — right after mint.</b> The claim contract is live and wired to your take. Ready once you hold it: <b>Take " + pad(selected) + " · " + LEVELS[claimTarget].full + " · " + LEVELS[claimTarget].share + "% pool share · fee 0.00021 BNB</b>. Copy the prompt. Want a bigger share? Upgrade first.";
-          cs.scrollIntoView({behavior: reduced ? "auto" : "smooth", block:"nearest"});
-        });
+        document.getElementById("upGoBtn").addEventListener("click", function(){ doUpgrade(); });
+        document.getElementById("claimBtn").addEventListener("click", function(){ doClaim(); });
         var mlb = document.getElementById("mintLiveBtn");
         if(mlb){ mlb.addEventListener("click", function(){ document.getElementById("gate2").scrollIntoView({behavior: reduced ? "auto" : "smooth", block:"start"}); }); }
 
@@ -2816,6 +2821,97 @@ Value: 0.002 BNB = 2000000000000000 wei + gas per call, repeat until Level 5. Re
            AlreadyMinted a593dbf8 · InsufficientPayment b99e2ab7. */
         var AGENT_ADDR = "0x60B9262456dE011F7d15a54CdD8c48bAaa8B022F";
         var EXTRA_WEI = "0x71afd498d0000"; /* 0.002 BNB, in wei, hex */
+        var CLAIM_ADDR = "0xcbd1010895D155563f693855D62614652fdf96eC";
+        var CLAIM_WEI = "0xbefe6f672000"; /* 0.00021 BNB, in wei, hex */
+        var UPGRADE_SEL = "0x45977d03"; /* upgrade(uint256) */
+        var CLAIM_SEL = "0x379607f5"; /* claim(uint256) */
+        var LEVEL_SEL = "0x6d5e3032"; /* levelOf(uint256) */
+        var CLAIMED_SEL = "0xdbe7e3bd"; /* claimed(uint256) */
+        function txLink(h){ return "<a href=\"https://bscscan.com/tx/" + h + "\" target=\"_blank\" rel=\"noopener\">" + h.slice(0, 10) + "… · BscScan</a>"; }
+        function pollWalletTx(p, hash, el, okHtml, failHtml){
+          var tries = 0;
+          (function tick(){
+            if(tries++ > 40){ el.innerHTML = "Still confirming — tx " + txLink(hash) + ". The board updates itself on its own."; return; }
+            setTimeout(function(){
+              p.request({method:"eth_getTransactionReceipt", params:[hash]}).then(function(rc){
+                if(!rc){ tick(); return; }
+                el.innerHTML = (rc.status === "0x1" ? okHtml : failHtml) + " Tx " + txLink(hash);
+                refreshChain();
+              }).catch(function(){ tick(); });
+            }, 2500);
+          })();
+        }
+        function ownerAddr(hex){ return (typeof hex === "string" && hex.length >= 42) ? ("0x" + hex.slice(-40)).toLowerCase() : ""; }
+        function walletAccount(p, el){
+          if(!p){ el.innerHTML = "<b>No wallet found.</b> Install MetaMask or another BNB Chain wallet in this browser, then try again."; return Promise.resolve(null); }
+          return p.request({method:"eth_requestAccounts"}).then(function(accs){
+            if(!accs || !accs.length){ el.innerHTML = "<b>No wallet connected.</b> Connect your wallet, then try again."; return null; }
+            return accs[0];
+          }).catch(function(e){
+            el.innerHTML = (e && e.code === 4001) ? "<b>Connection cancelled.</b> Nothing was sent." : "<b>Could not connect.</b> Unlock your wallet, then try again.";
+            return null;
+          });
+        }
+        function walletChainOk(p, el){
+          return p.request({method:"eth_chainId"}).then(function(id){
+            if(id !== "0x38"){ el.innerHTML = "<b>Wrong network.</b> Switch to BNB Mainnet (chain 56) first."; return false; }
+            return true;
+          }).catch(function(){ return true; });
+        }
+        function doUpgrade(){
+          var el = document.getElementById("upStatus");
+          el.className = "claim-status show";
+          var p = dmProvider();
+          walletAccount(p, el).then(function(acct){
+            if(!acct) return;
+            walletChainOk(p, el).then(function(ok){
+              if(!ok) return;
+              var target = selected, want = upTarget;
+              el.innerHTML = "Checking Take " + pad(target) + " on-chain…";
+              dmCall(NFT_ADDR, "0x6352211e" + word(target)).then(function(ownerHex){
+                if(ownerAddr(ownerHex) !== acct.toLowerCase()){ el.innerHTML = "<b>You don't own Take " + pad(target) + ".</b> Only its owner can upgrade it."; return; }
+                dmCall(NFT_ADDR, LEVEL_SEL + word(target)).then(function(lvHex){
+                  var lv = dmHexOk(lvHex) ? parseInt(lvHex, 16) : 1;
+                  if(lv >= 5){ el.innerHTML = "<b>Already maxed at Level 5.</b>"; return; }
+                  if(lv >= want){ el.innerHTML = "<b>Already Level " + lv + ".</b> Nothing to upgrade — pick a higher level above."; return; }
+                  el.innerHTML = "Confirm in your wallet — upgrading Take " + pad(target) + " to Level " + (lv + 1) + " · 0.002 BNB + gas…";
+                  p.request({method:"eth_sendTransaction", params:[{from:acct, to:NFT_ADDR, data:UPGRADE_SEL + word(target), value:EXTRA_WEI}]}).then(function(hash){
+                    el.innerHTML = "Sent — waiting for the chain to confirm the upgrade… Tx " + txLink(hash);
+                    pollWalletTx(p, hash, el, "<b>Take " + pad(target) + " is now Level " + (lv + 1) + ".</b>" + (lv + 1 < want ? " Tap Upgrade again for Level " + (lv + 2) + "." : ""), "<b>The upgrade failed on-chain.</b> No level changed.");
+                  }).catch(function(e){
+                    el.innerHTML = (e && e.code === 4001) ? "<b>You cancelled in your wallet.</b> Nothing was sent." : "<b>The upgrade failed.</b> Nothing was sent — check your wallet and try again.";
+                  });
+                }).catch(function(){ el.innerHTML = "<b>Could not read the take's level.</b> Try again in a moment."; });
+              }).catch(function(){ el.innerHTML = "<b>Take " + pad(target) + " isn't minted yet.</b> Mint it first, then upgrade."; });
+            });
+          });
+        }
+        function doClaim(){
+          var el = document.getElementById("claimStatus");
+          el.className = "claim-status show";
+          var p = dmProvider();
+          walletAccount(p, el).then(function(acct){
+            if(!acct) return;
+            walletChainOk(p, el).then(function(ok){
+              if(!ok) return;
+              var target = selected, lvl = claimTarget;
+              el.innerHTML = "Checking Take " + pad(target) + " on-chain…";
+              dmCall(NFT_ADDR, "0x6352211e" + word(target)).then(function(ownerHex){
+                if(ownerAddr(ownerHex) !== acct.toLowerCase()){ el.innerHTML = "<b>You don't own Take " + pad(target) + ".</b> Only its current holder can claim."; return; }
+                dmCall(CLAIM_ADDR, CLAIMED_SEL + word(target)).then(function(clHex){
+                  if(dmHexOk(clHex) && parseInt(clHex, 16) !== 0){ el.innerHTML = "<b>Take " + pad(target) + " already claimed.</b> One claim per take."; return; }
+                  el.innerHTML = "Confirm in your wallet — claiming $CURSOR for Take " + pad(target) + " · Level " + lvl + " · fee 0.00021 BNB + gas…";
+                  p.request({method:"eth_sendTransaction", params:[{from:acct, to:CLAIM_ADDR, data:CLAIM_SEL + word(target), value:CLAIM_WEI}]}).then(function(hash){
+                    el.innerHTML = "Sent — waiting for the chain to confirm the claim… Tx " + txLink(hash);
+                    pollWalletTx(p, hash, el, "<b>$CURSOR claimed for Take " + pad(target) + ".</b> Level " + lvl + " · " + LEVELS[lvl].share + "% pool share.", "<b>The claim failed on-chain.</b> Nothing was claimed.");
+                  }).catch(function(e){
+                    el.innerHTML = (e && e.code === 4001) ? "<b>You cancelled in your wallet.</b> Nothing was sent." : "<b>The claim failed.</b> Nothing was sent — check your wallet and try again.";
+                  });
+                }).catch(function(){ el.innerHTML = "<b>Could not check the claim yet.</b> Try again in a moment."; });
+              }).catch(function(){ el.innerHTML = "<b>Take " + pad(target) + " isn't minted yet.</b> Mint it first, then claim."; });
+            });
+          });
+        }
         var dmAccount = null, dmChainOk = false, dmAgentOk = null, dmMints = null, dmBusy = false;
         var dmDisc = document.getElementById("dmDisconnected");
         var dmConn = document.getElementById("dmConnected");

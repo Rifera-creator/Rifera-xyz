@@ -422,6 +422,27 @@ var ART = {"nft":{"abi":[{"type":"constructor","inputs":[{"name":"agentId_","typ
   };
 
   function $(id){ return document.getElementById(id); }
+
+  /* ── Persist deployed addresses so a reload never loses them ── */
+  var LS_KEY = "rifera-deploy-v1";
+  function saveState(){
+    try{
+      localStorage.setItem(LS_KEY, JSON.stringify({network: state.network, nft: state.nft, claim: state.claim, token: state.token, tx: state.tx, lpLocker: state.lpLocker, tokenOwner: state.tokenOwner, mintOpen: state.mintOpen, totalMinted: state.totalMinted, tokenSet: state.tokenSet}));
+    }catch(e){}
+  }
+  function loadState(){
+    try{
+      var raw = localStorage.getItem(LS_KEY); if(!raw) return;
+      var s = JSON.parse(raw); if(!s || typeof s !== "object") return;
+      ["nft","claim","token","lpLocker","tokenOwner","mintOpen","totalMinted","tokenSet"].forEach(function(k){ if(s[k] !== undefined) state[k] = s[k]; });
+      if(s.tx) state.tx = s.tx;
+      if(s.network) state.network = s.network;
+      if(state.lpLocker && $("in-lplocker")) $("in-lplocker").value = state.lpLocker;
+      if(state.tokenOwner && $("in-token-owner")) $("in-token-owner").value = state.tokenOwner;
+      if((state.nft || state.claim || state.token) && typeof logEl !== "undefined" && logEl) log("Restored deployed addresses from this browser (NFT " + (state.nft || "—") + " · Claim " + (state.claim || "—") + " · Token " + (state.token || "—") + ").", "ok");
+    }catch(e){}
+  }
+  loadState();
   function short(a){ return a ? a.slice(0,6) + "…" + a.slice(-4) : "—"; }
 
   /* ── Log ── */
@@ -447,6 +468,7 @@ var ART = {"nft":{"abi":[{"type":"constructor","inputs":[{"name":"agentId_","typ
 
   /* ── Summary ── */
   function updateSummary(){
+    saveState();
     var net = NETWORKS[state.network];
     function v(x){ return x ? x : "—"; }
     var lines = [

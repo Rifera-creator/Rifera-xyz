@@ -5,3 +5,4 @@ Allow: /
 # https://rifera.xyz/llms.txt
 # https://rifera.xyz/agents.txt
 # https://rifera.xyz/mint.json
+Sitemap: https://rifera.xyz/sitemap.xml
