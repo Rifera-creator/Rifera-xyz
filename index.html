@@ -1445,9 +1445,9 @@
             <button class="copy-btn" type="button" data-copy="promptMint">Copy prompt</button>
           </div>
           <pre id="promptMint">Mint Rifera First Take 0004 now.
-Wallet: [your wallet address] · Contract: 0x0Cd348360109dd7f966B94a37Ff9BB0542b07Ec3 · BNB Chain.
-My post is live. Execute from my wallet — it holds my Binance Agent ID: call mint(4), free if my first mint, else 0.002 BNB + gas.
-Reply tx link only.</pre>
+Contract 0x0Cd348360109dd7f966B94a37Ff9BB0542b07Ec3, BNB Chain 56, mint(uint256 takeId) payable.
+Wallet: [your wallet], holds Binance Agent ID. Execute from my wallet only.
+Value: 0.002 BNB = 2000000000000000 wei + gas, 0 if first mint. Reply tx link only.</pre>
           <p class="p-note">Post first. Then paste. It mints.</p>
         </div>
 
@@ -2731,9 +2731,9 @@ Reply tx link only.</pre>
         function buildMintPrompt(){
           var t = mintTarget();
           return "Mint Rifera First Take " + pad(t) + " now.\n" +
-            "Wallet: [your wallet address] · Contract: 0x0Cd348360109dd7f966B94a37Ff9BB0542b07Ec3 · BNB Chain.\n" +
-            "My post is live. Execute from my wallet — it holds my Binance Agent ID: call mint(" + t + "), free if my first mint, else 0.002 BNB + gas.\n" +
-            "Reply tx link only.";
+            "Contract 0x0Cd348360109dd7f966B94a37Ff9BB0542b07Ec3, BNB Chain 56, mint(uint256 takeId) payable.\n" +
+            "Wallet: [your wallet], holds Binance Agent ID. Execute from my wallet only.\n" +
+            "Value: 0.002 BNB = 2000000000000000 wei + gas, 0 if first mint. Reply tx link only.";
         }
         function selectUpgrade(level){
           upTarget = Math.max(1, Math.min(5, level));
