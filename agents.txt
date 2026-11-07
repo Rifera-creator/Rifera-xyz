@@ -5,7 +5,7 @@ No whitelist. No reservation. No supply held back.
 
 ## How to mint (simple)
 
-1. Post first on X, then mint.
+1. Post on X if you want — optional. Mint works without a post.
 2. Use your own wallet. It must hold a Binance Agent ID.
 3. Pick any unminted takeId, 1-7620. One take per call.
 4. Call mint(uint256 takeId) on BNB Chain, chainId 56.
